@@ -7,11 +7,17 @@ struct BaudApp: App {
 
     var body: some Scene {
         MenuBarExtra("Baud", systemImage: "circle.dashed") {
-            Button("Show test reminder") {
-                presenter.showPlaceholder()
+            Button("Show reminder") {
+                presenter.show()
             }
-            Button("Hide") {
-                presenter.hide()
+            Button("Acknowledge") {
+                presenter.acknowledge()
+            }
+            Button("Snooze") {
+                presenter.snooze()
+            }
+            Button("Dismiss") {
+                presenter.dismiss()
             }
             Divider()
             Button("Quit") {
