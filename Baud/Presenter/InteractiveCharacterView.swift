@@ -30,7 +30,7 @@ struct InteractiveCharacterView: View {
     private var actions: some View {
         HStack(spacing: 8) {
             ActionButton(symbol: "checkmark", help: "Dismiss", action: onDismiss)
-            ActionButton(symbol: "clock", help: "Snooze 10 minutes", action: onSnooze)
+            ActionButton(symbol: "clock", help: "Snooze", action: onSnooze)
         }
     }
 }

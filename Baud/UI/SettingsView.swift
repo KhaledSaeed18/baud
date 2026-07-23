@@ -27,6 +27,10 @@ private struct GeneralSettingsView: View {
         _launchAtLogin = State(initialValue: model.launchesAtLogin)
     }
 
+    @AppStorage(AppModel.snoozeMinutesKey) private var snoozeMinutes = AppModel.defaultSnoozeMinutes
+
+    private static let snoozeChoices = [5, 10, 15, 30]
+
     var body: some View {
         Form {
             Section {
@@ -36,6 +40,24 @@ private struct GeneralSettingsView: View {
                     }
             } footer: {
                 Text("Baud starts with your Mac and waits in the menu bar. It has no Dock icon.")
+            }
+
+            Section {
+                Picker("Snooze length", selection: $snoozeMinutes) {
+                    ForEach(Self.snoozeChoices, id: \.self) { minutes in
+                        Text("\(minutes) minutes").tag(minutes)
+                    }
+                }
+            } footer: {
+                Text("How long a snoozed reminder waits before it returns.")
+            }
+
+            Section {
+                LabeledContent("Character") {
+                    Button("Show a preview") { model.preview() }
+                }
+            } footer: {
+                Text("The character slides in from the corner, delivers one line, and leaves.")
             }
         }
         .formStyle(.grouped)

@@ -1,7 +1,7 @@
 import SwiftUI
 import AppKit
 
-/// The menu bar content: the next reminder, pause controls, a preview, and quit.
+/// The menu bar content: the next reminder, pause controls, settings, and quit.
 struct MenuBarView: View {
     let model: AppModel
     @Environment(\.openSettings) private var openSettings
@@ -11,7 +11,6 @@ struct MenuBarView: View {
         Divider()
         pauseControls
         Divider()
-        Button("Show a reminder now") { model.preview() }
         Button("Settings\u{2026}") {
             NSApp.activate()
             openSettings()

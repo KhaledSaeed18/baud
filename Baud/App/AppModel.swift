@@ -60,9 +60,22 @@ final class AppModel {
         }
     }
 
+    /// UserDefaults key for the snooze length, in minutes. The settings pane
+    /// writes it; the scheduler reads it when a snooze is requested.
+    static let snoozeMinutesKey = "snoozeMinutes"
+    static let defaultSnoozeMinutes = 10
+
+    private var snoozeInterval: TimeInterval {
+        let stored = UserDefaults.standard.integer(forKey: Self.snoozeMinutesKey)
+        let minutes = stored > 0 ? stored : Self.defaultSnoozeMinutes
+        return TimeInterval(minutes * 60)
+    }
+
     /// Show the first enabled reminder now, without waiting out an interval.
+    /// With everything disabled, a sample line keeps the preview working.
     func preview() {
-        guard let reminder = reminders.first(where: \.isEnabled) else { return }
+        let reminder = reminders.first(where: \.isEnabled)
+            ?? Reminder(label: "Preview", message: "This is how a reminder looks.", interval: 60, mood: .custom)
         presenter.show(reminder: reminder) { _ in }
     }
 
@@ -75,7 +88,7 @@ final class AppModel {
     private func handle(_ outcome: ReminderOutcome, for reminder: Reminder) {
         switch outcome {
         case .snoozed:
-            scheduler?.snooze(reminder.id, by: 10 * 60)
+            scheduler?.snooze(reminder.id, by: snoozeInterval)
         case .dismissed, .autoDismissed:
             break
         }
