@@ -43,10 +43,10 @@ Teaches: MenuBarExtra, SMAppService, form UI.
 
 ## Phase 5: ship
 - [x] Choose the real name, replace the placeholder everywhere (baud)
-- [ ] Icon and menu bar template image
-- [ ] Sign, notarize, staple
-- [ ] GitHub Releases, Homebrew cask, MIT licence, README
-- [ ] Decide the config file format is stable enough to document as a public interface
+- [x] Icon and menu bar template image
+- [ ] Sign, notarize, staple (script in scripts/release.sh; needs a Developer ID to run)
+- [ ] GitHub Releases, Homebrew cask, MIT licence, README (licence, README, and cask template done; release upload pending a signed build)
+- [x] Decide the config file format is stable enough to document as a public interface
 
 ## Later, not v1
 - Custom character import. Only after real use tells you what the state vocabulary needs.

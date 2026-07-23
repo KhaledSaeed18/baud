@@ -152,3 +152,17 @@ no longer drives the character off screen, and clicking the character is a later
 **Rejected:** Holding during pause (a surprise pop on resume); letting each view reach into the
 scheduler directly (leaks it across the UI); leaving the character on screen until the next
 interaction (it would never leave).
+
+## ADR-016: The config file is a public interface; distribution is a notarised zip and a cask
+**Decision:** reminders.json is a supported public interface with a documented, stable schema (see
+docs/CONFIG.md); format changes will be noted there. Baud ships as a Developer ID signed, hardened,
+notarised, stapled zip built by scripts/release.sh, distributed through GitHub Releases and a
+Homebrew cask. The app icon and menu bar template are generated from the same geometry as the code
+drawn character by scripts/make-icons.swift.
+**Why:** A file the user can read and edit is part of being open and hackable, which only holds if
+the format is treated as an interface rather than an implementation detail. Signing and notarising
+avoid the Gatekeeper friction that a native, non-Electron app is meant to beat. Generating the icon
+from code keeps it consistent with the character and free of an asset pipeline.
+**Rejected:** Keeping the config format private (undercuts the hackable positioning); shipping
+unsigned (Gatekeeper friction is exactly what the product positions against); hand-drawn icon
+assets (an asset pipeline the code-drawn approach was chosen to avoid).
