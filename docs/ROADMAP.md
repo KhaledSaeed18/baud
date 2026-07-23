@@ -19,10 +19,10 @@ Teaches: AppKit windowing, NSHostingView, screen geometry. This is the riskiest 
 Teaches: SwiftUI animation, state machines, accessibility. Follow docs/CHARACTER.md exactly.
 
 ## Phase 2: reminders and scheduling
-- [ ] Reminder model, JSON persistence in Application Support
-- [ ] Built-in reminders: move, water, eyes, posture
-- [ ] ReminderScheduler with computed fire dates, single coordinating timer
-- [ ] Wake-from-sleep recovery, missed occurrences collapse to at most one
+- [x] Reminder model, JSON persistence in Application Support
+- [x] Built-in reminders: move, water, eyes, posture
+- [x] ReminderScheduler with computed fire dates, single coordinating timer
+- [x] Wake-from-sleep recovery, missed occurrences collapse to at most one
 Teaches: timers that survive sleep, file persistence, Codable.
 
 ## Phase 3: the suppression gate (the important one)

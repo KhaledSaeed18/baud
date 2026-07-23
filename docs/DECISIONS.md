@@ -96,3 +96,26 @@ micro-motion stays in SwiftUI, where springs are cheap and where CHARACTER.md's 
 **Rejected:** Animating the character's offset inside a fixed, taller window (it would have to
 extend off-screen to hide the start, which fights the corner geometry). A hand-driven spring on the
 window frame via a display link (more code than the beat warrants for v1).
+
+## ADR-012: The scheduler is main-actor isolated, one coordinating wait
+**Decision:** ReminderScheduler is @MainActor (CONVENTIONS asks this choice be recorded). It holds
+a next fire Date per reminder and a single coordinating wait that sleeps until the earliest fire
+date, then delivers and recomputes. It is not a repeating timer and not a polling loop. Wake is
+handled by the App observing NSWorkspace.didWakeNotification and calling handleWake, which
+re-evaluates due reminders. Occurrences missed while asleep collapse to a single delivery.
+**Why:** Delivery drives the main-actor presenter, so main-actor isolation avoids hops and keeps
+the seam simple; the pure fire-date math (nextOccurrence) stays static and testable. A computed
+wait honours "compute, do not count down" without a per-reminder timer. Keeping the wake
+notification in the App layer keeps AppKit out of the scheduler, so it stays headless-testable.
+**Rejected:** A Foundation Timer per reminder (drift, and its Sendable block fights main-actor
+capture); observing the wake notification inside the scheduler (pulls AppKit into a layer that must
+test without it).
+
+## ADR-013: Tests are an app-hosted target using Swift Testing
+**Decision:** BaudTests is a unit-test target hosted by Baud.app, using Swift Testing (import
+Testing) with @testable import Baud to reach internal types.
+**Why:** The scheduler and store are internal to the app module, so @testable import needs the app
+as test host. Swift Testing is the current default and reads cleanly. Debug already builds with
+testability enabled.
+**Rejected:** A separate core framework the app and tests both link (more structure than a
+single-target app needs now); XCTest (Swift Testing is the newer default).
