@@ -79,15 +79,27 @@ final class AppModel {
         return TimeInterval(minutes * 60)
     }
 
+    /// UserDefaults key for how long the character waits for a click before it
+    /// leaves on its own, in seconds.
+    static let autoDismissSecondsKey = "autoDismissSeconds"
+    static let defaultAutoDismissSeconds = 8
+
+    private var autoDismissDelay: TimeInterval {
+        let stored = UserDefaults.standard.integer(forKey: Self.autoDismissSecondsKey)
+        return TimeInterval(stored > 0 ? stored : Self.defaultAutoDismissSeconds)
+    }
+
     /// Show the first enabled reminder now, without waiting out an interval.
     /// With everything disabled, a sample line keeps the preview working.
     func preview() {
         let reminder = reminders.first(where: \.isEnabled)
             ?? Reminder(label: "Preview", message: "This is how a reminder looks.", interval: 60, mood: .custom)
+        presenter.autoDismissDelay = autoDismissDelay
         presenter.show(reminder: reminder) { _ in }
     }
 
     private func deliver(_ reminder: Reminder) {
+        presenter.autoDismissDelay = autoDismissDelay
         presenter.show(reminder: reminder) { [weak self] outcome in
             self?.handle(outcome, for: reminder)
         }

@@ -17,7 +17,9 @@ final class Presenter {
     private var window: BaudWindow?
     private let contentSize = CGSize(width: 210, height: 220)
     private let speakingBeat: TimeInterval = 2.2
-    private let autoDismissDelay: TimeInterval = 8
+    // Settable by the app model from the user's preference; the presenter only
+    // performs the wait, it does not own the choice.
+    var autoDismissDelay: TimeInterval = 8
     private var currentOutcome: ((ReminderOutcome) -> Void)?
     private var mouseMonitor: Any?
 
