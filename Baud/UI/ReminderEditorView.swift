@@ -83,16 +83,28 @@ private struct ReminderDetailView: View {
     @State private var draft: Reminder
     @State private var value: Int
     @State private var unit: IntervalUnit
+    @State private var snoozeMinutes: Int?
     private let onSave: (Reminder) -> Void
     private let onDelete: (() -> Void)?
 
     private static let minutePresets = [15, 20, 30, 45, 60]
+    private static let snoozePresets = [5, 10, 15, 30]
+
+    // A hand-edited file can hold a snooze outside the presets; keep it
+    // selectable rather than snapping it to the nearest choice.
+    private var snoozeChoices: [Int] {
+        guard let current = snoozeMinutes, !Self.snoozePresets.contains(current) else {
+            return Self.snoozePresets
+        }
+        return (Self.snoozePresets + [current]).sorted()
+    }
 
     init(reminder: Reminder, onSave: @escaping (Reminder) -> Void, onDelete: (() -> Void)?) {
         _draft = State(initialValue: reminder)
         let split = IntervalUnit.split(reminder.interval)
         _value = State(initialValue: split.value)
         _unit = State(initialValue: split.unit)
+        _snoozeMinutes = State(initialValue: reminder.snoozeInterval.map { Int($0 / 60) })
         self.onSave = onSave
         self.onDelete = onDelete
     }
@@ -138,6 +150,15 @@ private struct ReminderDetailView: View {
                         }
                     }
                 }
+
+                Section("Snooze") {
+                    Picker("Length", selection: $snoozeMinutes) {
+                        Text("App setting").tag(Int?.none)
+                        ForEach(snoozeChoices, id: \.self) { minutes in
+                            Text("\(minutes) minutes").tag(Int?.some(minutes))
+                        }
+                    }
+                }
             }
             .formStyle(.grouped)
             // Switching units can leave the value out of the new range; typing can
@@ -159,6 +180,7 @@ private struct ReminderDetailView: View {
                 Button("Cancel") { dismiss() }
                 Button("Save") {
                     draft.interval = intervalSeconds
+                    draft.snoozeInterval = snoozeMinutes.map { TimeInterval($0 * 60) }
                     onSave(draft)
                     dismiss()
                 }
