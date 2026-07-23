@@ -5,30 +5,44 @@ import SwiftUI
 /// deleting are restricted to custom ones; a built-in keeps its place.
 struct ReminderEditorView: View {
     let model: AppModel
-    @State private var editing: Reminder?
+    @State private var editing: EditingReminder?
 
     var body: some View {
         VStack(spacing: 0) {
             List {
                 ForEach(model.reminders) { reminder in
-                    ReminderRow(reminder: reminder, model: model) { editing = reminder }
+                    ReminderRow(reminder: reminder, model: model) {
+                        editing = EditingReminder(reminder: reminder, isNew: false)
+                    }
                 }
             }
             Divider()
             HStack {
-                Button("Add reminder") { editing = model.addCustomReminder() }
+                Button("Add reminder") {
+                    editing = EditingReminder(reminder: model.newCustomReminder(), isNew: true)
+                }
                 Spacer()
             }
             .padding(8)
         }
-        .sheet(item: $editing) { reminder in
+        .sheet(item: $editing) { target in
             ReminderDetailView(
-                reminder: reminder,
-                onSave: { model.update($0) },
-                onDelete: reminder.isBuiltIn ? nil : { model.delete(reminder) }
+                reminder: target.reminder,
+                onSave: { saved in
+                    if target.isNew { model.add(saved) } else { model.update(saved) }
+                },
+                onDelete: target.isNew || target.reminder.isBuiltIn ? nil : { model.delete(target.reminder) }
             )
         }
     }
+}
+
+// Tells the add flow from the edit flow, so a new reminder is committed only on
+// save and cancelling the add sheet leaves nothing behind.
+private struct EditingReminder: Identifiable {
+    let reminder: Reminder
+    let isNew: Bool
+    var id: UUID { reminder.id }
 }
 
 private struct ReminderRow: View {

@@ -78,12 +78,15 @@ final class AppModel {
         }
     }
 
-    @discardableResult
-    func addCustomReminder() -> Reminder {
-        let reminder = Reminder(label: "New reminder", message: "Reminder.", interval: 30 * 60, mood: .custom)
+    /// A fresh custom reminder, not yet added. The editor commits it through
+    /// `add` only on save, so cancelling the add sheet leaves nothing behind.
+    func newCustomReminder() -> Reminder {
+        Reminder(label: "New reminder", message: "Reminder.", interval: 30 * 60, mood: .custom)
+    }
+
+    func add(_ reminder: Reminder) {
         reminders.append(reminder)
         persist()
-        return reminder
     }
 
     func update(_ reminder: Reminder) {
