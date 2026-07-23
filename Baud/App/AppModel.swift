@@ -96,7 +96,7 @@ final class AppModel {
     private func handle(_ outcome: ReminderOutcome, for reminder: Reminder) {
         switch outcome {
         case .snoozed:
-            scheduler?.snooze(reminder.id, by: snoozeInterval)
+            scheduler?.snooze(reminder.id, by: reminder.snoozeInterval ?? snoozeInterval)
         case .dismissed, .autoDismissed:
             break
         }

@@ -12,6 +12,10 @@ struct Reminder: Identifiable, Codable, Equatable {
     var isEnabled: Bool
     var isBuiltIn: Bool
 
+    /// Seconds a snooze postpones this reminder. Nil means the app-wide snooze
+    /// length applies. Optional so files written before the field decode as is.
+    var snoozeInterval: TimeInterval?
+
     init(
         id: UUID = UUID(),
         label: String,
@@ -19,7 +23,8 @@ struct Reminder: Identifiable, Codable, Equatable {
         interval: TimeInterval,
         mood: CharacterMood,
         isEnabled: Bool = true,
-        isBuiltIn: Bool = false
+        isBuiltIn: Bool = false,
+        snoozeInterval: TimeInterval? = nil
     ) {
         self.id = id
         self.label = label
@@ -28,5 +33,6 @@ struct Reminder: Identifiable, Codable, Equatable {
         self.mood = mood
         self.isEnabled = isEnabled
         self.isBuiltIn = isBuiltIn
+        self.snoozeInterval = snoozeInterval
     }
 }
