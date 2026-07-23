@@ -9,6 +9,8 @@ final class Presenter {
     private let character = CharacterModel()
     private var window: BaudWindow?
     private let contentSize = CGSize(width: 210, height: 220)
+    private let speakingBeat: TimeInterval = 2.2
+    private let autoDismissDelay: TimeInterval = 8
 
     func show(mood: CharacterMood, message: String) {
         guard character.state == .hidden else { return }
@@ -54,8 +56,16 @@ final class Presenter {
         }
 
         character.speak()
-        try? await Task.sleep(for: .seconds(2.2))
-        if character.state == .speaking { character.settleIdle() }
+        try? await Task.sleep(for: .seconds(speakingBeat))
+        guard character.state == .speaking else { return }
+        character.settleIdle()
+
+        // No interaction yet, so the character auto-dismisses. That is a normal
+        // outcome, not a failure, and is never tracked as one.
+        try? await Task.sleep(for: .seconds(autoDismissDelay))
+        guard character.state == .idle else { return }
+        character.leave()
+        await leave(afterBeat: false)
     }
 
     private func leave(afterBeat: Bool) async {
