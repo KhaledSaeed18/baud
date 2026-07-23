@@ -45,7 +45,14 @@ final class Presenter {
 
     private func arrive() async {
         let window = ensureWindow()
-        guard let screen = targetScreen() else { return }
+        // With no screen the character can never appear. Report and reset to
+        // hidden; staying in .arriving would block every future reminder.
+        guard let screen = targetScreen() else {
+            report(.autoDismissed)
+            character.leave()
+            character.finishLeaving()
+            return
+        }
         let resting = WindowPositioner.restingFrame(size: contentSize, in: screen.visibleFrame)
 
         if reduceMotion {
@@ -81,7 +88,14 @@ final class Presenter {
             try? await Task.sleep(for: .seconds(0.32))
             character.leave()
         }
-        guard let window, let screen = targetScreen() else { return }
+        // Losing the window or the screen mid-show must still end in .hidden,
+        // or the next reminder would be blocked forever.
+        guard let window, let screen = targetScreen() else {
+            window?.orderOut(nil)
+            stopTrackingMouse()
+            character.finishLeaving()
+            return
+        }
         let resting = WindowPositioner.restingFrame(size: contentSize, in: screen.visibleFrame)
 
         if reduceMotion {
