@@ -1,5 +1,6 @@
 import AppKit
 import Observation
+import ServiceManagement
 
 /// The controller the UI talks to. It owns the store, the scheduler, and the
 /// presenter, exposes the state the menu and settings read, and turns user
@@ -40,6 +41,21 @@ final class AppModel {
     func pause(for duration: TimeInterval) { scheduler?.pause(for: duration) }
     func pauseIndefinitely() { scheduler?.pauseIndefinitely() }
     func resume() { scheduler?.resume() }
+
+    var launchesAtLogin: Bool { SMAppService.mainApp.status == .enabled }
+
+    func setLaunchAtLogin(_ enabled: Bool) {
+        do {
+            if enabled, SMAppService.mainApp.status != .enabled {
+                try SMAppService.mainApp.register()
+            } else if !enabled, SMAppService.mainApp.status == .enabled {
+                try SMAppService.mainApp.unregister()
+            }
+        } catch {
+            // Registration can fail, for example on an unsigned build. Keep the
+            // current state rather than surfacing an error the user cannot act on.
+        }
+    }
 
     /// Show the first enabled reminder now, without waiting out an interval.
     func preview() {
