@@ -12,6 +12,17 @@ struct ReminderStoreTests {
         #expect(store.load() == DefaultReminders.all)
     }
 
+    @Test func malformedFileFallsBackWithoutOverwriting() throws {
+        let directory = tempDirectory()
+        let store = ReminderStore(directory: directory)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        let broken = Data("not json".utf8)
+        try broken.write(to: store.fileURL)
+
+        #expect(store.load() == DefaultReminders.all)
+        #expect(try Data(contentsOf: store.fileURL) == broken)
+    }
+
     @Test func saveThenLoadRoundTrips() throws {
         let store = ReminderStore(directory: tempDirectory())
         var reminders = DefaultReminders.all

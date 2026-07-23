@@ -66,6 +66,32 @@ struct ReminderSchedulerTests {
         }
     }
 
+    @Test func updateReschedulesWhenIntervalChanges() {
+        var r = reminder(interval: 3600)
+        let t0 = Date(timeIntervalSince1970: 0)
+        var current = t0
+        let scheduler = ReminderScheduler(reminders: [r], now: { current }, deliver: { _ in })
+        scheduler.seed(reference: t0)
+
+        current = t0.addingTimeInterval(300)
+        r.interval = 60
+        scheduler.update(reminders: [r])
+        #expect(scheduler.nextFire[r.id] == current.addingTimeInterval(60))
+    }
+
+    @Test func updateKeepsScheduleWhenIntervalUnchanged() {
+        var r = reminder(interval: 3600)
+        let t0 = Date(timeIntervalSince1970: 0)
+        var current = t0
+        let scheduler = ReminderScheduler(reminders: [r], now: { current }, deliver: { _ in })
+        scheduler.seed(reference: t0)
+
+        current = t0.addingTimeInterval(300)
+        r.label = "renamed"
+        scheduler.update(reminders: [r])
+        #expect(scheduler.nextFire[r.id] == t0.addingTimeInterval(3600))
+    }
+
     @Test func nextOccurrenceIsStrictlyAfterCurrent() {
         let anchor = Date(timeIntervalSince1970: 0)
         let onBoundary = ReminderScheduler.nextOccurrence(after: anchor.addingTimeInterval(120), anchor: anchor, interval: 60)
