@@ -1,8 +1,8 @@
 import SwiftUI
 
-/// Lists reminders with an enable toggle each, and lets custom reminders be
-/// added, edited, and deleted. Built-in and custom are the same type; only
-/// delete and field editing are restricted to custom ones.
+/// Lists reminders with an enable toggle each. Every reminder can be edited,
+/// built-in and custom alike, since they are the same type. Only adding and
+/// deleting are restricted to custom ones; a built-in keeps its place.
 struct ReminderEditorView: View {
     let model: AppModel
     @State private var editing: Reminder?
@@ -51,9 +51,7 @@ private struct ReminderRow: View {
                     .foregroundStyle(.secondary)
             }
             Spacer()
-            if !reminder.isBuiltIn {
-                Button("Edit", action: onEdit)
-            }
+            Button("Edit", action: onEdit)
         }
         .padding(.vertical, 2)
     }
