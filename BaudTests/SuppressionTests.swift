@@ -92,4 +92,23 @@ struct SuppressionTests {
         #expect(delivered == 1)
         #expect(scheduler.held.count == 1)
     }
+
+    @Test func pauseSkipsDeliveryUntilResume() {
+        let r = reminder()
+        var delivered = 0
+        let scheduler = ReminderScheduler(reminders: [r], deliver: { _ in delivered += 1 })
+        let t0 = Date(timeIntervalSince1970: 0)
+        scheduler.seed(reference: t0)
+        scheduler.pause(until: t0.addingTimeInterval(300))
+
+        _ = scheduler.fireDue(at: t0.addingTimeInterval(60))
+        // Paused reminders are skipped, not held, and the schedule still advances.
+        #expect(delivered == 0)
+        #expect(scheduler.held.isEmpty)
+        #expect(scheduler.nextFire[r.id] == t0.addingTimeInterval(120))
+
+        scheduler.resume()
+        _ = scheduler.fireDue(at: t0.addingTimeInterval(130))
+        #expect(delivered == 1)
+    }
 }
