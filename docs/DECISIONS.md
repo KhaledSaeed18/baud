@@ -166,3 +166,21 @@ from code keeps it consistent with the character and free of an asset pipeline.
 **Rejected:** Keeping the config format private (undercuts the hackable positioning); shipping
 unsigned (Gatekeeper friction is exactly what the product positions against); hand-drawn icon
 assets (an asset pipeline the code-drawn approach was chosen to avoid).
+
+## ADR-017: The character is interactive by toggling click-through over its hit strip
+**Decision:** While a reminder is on screen, the overlay window is click-through except over the
+bottom strip where the character and its controls sit; a global mouse monitor toggles
+ignoresMouseEvents as the cursor enters and leaves that strip. The character carries a dismiss
+control and a snooze control that appear while it is present. The hosting view accepts the first
+mouse, so a click acts immediately without activating the never-key window. Dismiss, snooze, and
+auto-dismiss are reported to the app model as outcomes; snooze reschedules the reminder ten minutes
+out.
+**Why:** The window must stay click-through so it never blocks the content behind it, and it must
+never become key so it never steals focus while the user types; toggling ignoresMouseEvents over
+only the hit strip satisfies both while still letting the controls be clicked. Reporting outcomes
+keeps the character ignorant of scheduling: it says how the reminder ended, the app model decides
+what that means.
+**Rejected:** Per-pixel hit testing via a hosting-view hitTest override (hard to get right against
+SwiftUI's internal view tree, and untestable); making the whole window interactive whenever visible
+(captures clicks over the transparent bubble area too); a right-click menu for snooze (less
+discoverable than a one-click control, which PRODUCT.md asks for).

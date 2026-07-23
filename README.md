@@ -32,6 +32,9 @@ Dock icon.
 The menu bar shows the next reminder and a pause submenu. Open Settings to enable or disable the
 built-in reminders, add your own, and turn on launch at login.
 
+When a reminder appears, click the character to dismiss it, or the snooze control to be reminded
+again in ten minutes. Ignore it and it leaves on its own.
+
 Reminders are stored as a JSON file you can edit by hand. See [docs/CONFIG.md](docs/CONFIG.md).
 
 ## Status
