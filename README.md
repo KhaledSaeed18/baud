@@ -73,8 +73,7 @@ Three layers with a clean seam, so no layer reaches into another:
   reminder are the same type, with no special casing for water or movement.
 
 The character is a state machine, not a pile of flags: arriving, idle, speaking, acknowledged,
-snoozed, and leaving, each tied to a mood. Adding a mood is adding a case, not an `if` in a view. See
-[docs/CHARACTER.md](docs/CHARACTER.md).
+snoozed, and leaving, each tied to a mood. Adding a mood is adding a case, not an `if` in a view.
 
 ## Install
 
@@ -83,8 +82,7 @@ Requires macOS 14 or later and Xcode 16 or later. Baud is built from source.
 ```bash
 git clone https://github.com/KhaledSaeed18/baud.git
 cd baud
-scripts/install-hooks.sh   # optional: the style pre-commit hook
-open Baud.xcodeproj         # build and run with Cmd R
+open Baud.xcodeproj   # build and run with Cmd R
 ```
 
 Baud lives in the menu bar and has no Dock icon. Look for its mark in the menu bar after launch.
@@ -115,16 +113,28 @@ Settings has three tabs:
 - **Reminders**: enable, disable, add, edit, and delete reminders.
 - **About**: version and a link to the source.
 
-Reminders are stored as a JSON file in Application Support that you can read and edit by hand. The
-format is a supported interface, documented in [docs/CONFIG.md](docs/CONFIG.md).
+Reminders are stored as a JSON array at `~/Library/Application Support/Baud/reminders.json`, seeded
+on first launch and safe to edit by hand (quit Baud first, since saving from the editor overwrites
+hand edits). The format is a supported interface:
+
+| Field       | Type    | Meaning                                                  |
+|-------------|---------|----------------------------------------------------------|
+| `id`        | string  | UUID. Stable identity. Built-ins use fixed ids.          |
+| `label`     | string  | Short name shown in the menu and editor.                 |
+| `message`   | string  | What the character says. Short and calm.                 |
+| `interval`  | number  | Seconds between occurrences.                             |
+| `mood`      | string  | One of `move`, `water`, `eyes`, `posture`, `custom`.     |
+| `isEnabled` | boolean | Whether the reminder is scheduled.                       |
+| `isBuiltIn` | boolean | True for the shipped reminders; those cannot be deleted. |
+
+An unreadable or malformed file falls back to the built-ins rather than leaving you with nothing.
 
 ## Architecture
 
 Three layers with clean seams: the Scheduler (when) never touches AppKit, the Presenter (window and
 character) never decides timing, and Reminders are plain data. The character is a state machine, so a
-new mood is a new case rather than a branch in a view. See
-[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and [CLAUDE.md](CLAUDE.md) for the full map and the
-design rules.
+new mood is a new case rather than a branch in a view. See [CLAUDE.md](CLAUDE.md) for the full map
+and the design rules.
 
 ## Development
 
@@ -135,8 +145,8 @@ xcodebuild test -project Baud.xcodeproj -scheme Baud -destination 'platform=macO
 Or run the tests with Cmd U in Xcode. If Xcode is installed but is not the active command-line
 toolchain, prefix the command with `DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer`.
 
-Read [docs/CONVENTIONS.md](docs/CONVENTIONS.md) before opening a pull request, and run
-`scripts/install-hooks.sh` once so the style hook is active.
+Read [CLAUDE.md](CLAUDE.md) before opening a pull request; it holds the code, writing, and design
+conventions.
 
 ## Requirements
 
