@@ -266,6 +266,7 @@ the built-ins. It is a supported public interface: the schema is stable.
 | `mood`      | string  | One of `move`, `water`, `eyes`, `posture`, `custom`.      |
 | `isEnabled` | boolean | Whether the reminder is scheduled.                        |
 | `isBuiltIn` | boolean | True for the shipped reminders; those cannot be deleted.  |
+| `snoozeInterval` | number | Optional. Seconds a snooze postpones this reminder; omitted means the app-wide snooze length applies. |
 
 Edit with the app quit: saving from the editor while Baud runs overwrites hand edits. An unreadable
 or malformed file falls back to the built-ins rather than leaving the user with nothing. An unknown

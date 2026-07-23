@@ -26,7 +26,7 @@ struct ReminderStoreTests {
     @Test func saveThenLoadRoundTrips() throws {
         let store = ReminderStore(directory: tempDirectory())
         var reminders = DefaultReminders.all
-        reminders.append(Reminder(label: "Tea", message: "Tea.", interval: 900, mood: .custom))
+        reminders.append(Reminder(label: "Tea", message: "Tea.", interval: 900, mood: .custom, snoozeInterval: 300))
         try store.save(reminders)
         #expect(store.load() == reminders)
     }
