@@ -14,12 +14,15 @@ struct ReminderStore {
     /// run. A missing or unreadable file falls back to the built-ins so the user
     /// is never left with nothing.
     func load() -> [Reminder] {
-        guard let data = try? Data(contentsOf: fileURL),
-              let reminders = try? JSONDecoder().decode([Reminder].self, from: data)
-        else {
+        guard let data = try? Data(contentsOf: fileURL) else {
             let defaults = DefaultReminders.all
             try? save(defaults)
             return defaults
+        }
+        // An unreadable file falls back to the built-ins in memory only. Writing
+        // the defaults here would destroy a hand-edited file over one typo.
+        guard let reminders = try? JSONDecoder().decode([Reminder].self, from: data) else {
+            return DefaultReminders.all
         }
         return reminders
     }
