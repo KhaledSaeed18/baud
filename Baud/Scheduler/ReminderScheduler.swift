@@ -82,6 +82,13 @@ final class ReminderScheduler {
         arm()
     }
 
+    /// Postpone a reminder so it fires again after a short delay, for a snooze.
+    func snooze(_ id: UUID, by delay: TimeInterval) {
+        guard reminders.contains(where: { $0.id == id && $0.isEnabled }) else { return }
+        nextFire[id] = now().addingTimeInterval(delay)
+        arm()
+    }
+
     func isPaused(at current: Date) -> Bool {
         guard let until = pausedUntil else { return false }
         return current < until

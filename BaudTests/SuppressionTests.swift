@@ -111,4 +111,15 @@ struct SuppressionTests {
         _ = scheduler.fireDue(at: t0.addingTimeInterval(130))
         #expect(delivered == 1)
     }
+
+    @Test func snoozeReschedulesSooner() {
+        let t0 = Date(timeIntervalSince1970: 1000)
+        let r = reminder(interval: 1800)
+        let scheduler = ReminderScheduler(reminders: [r], now: { t0 }, deliver: { _ in })
+        scheduler.seed(reference: t0)
+        #expect(scheduler.nextFire[r.id] == t0.addingTimeInterval(1800))
+
+        scheduler.snooze(r.id, by: 600)
+        #expect(scheduler.nextFire[r.id] == t0.addingTimeInterval(600))
+    }
 }
