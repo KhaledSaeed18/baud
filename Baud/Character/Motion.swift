@@ -1,8 +1,9 @@
 import SwiftUI
 import QuartzCore
 
-/// Every animation constant in one place. CHARACTER.md is the source of truth
-/// for these values; nothing else in the app holds a duration or a spring.
+/// Every animation constant in one place. The motion spec in CLAUDE.md is the
+/// source of truth for these values; nothing else in the app holds a duration or
+/// a spring.
 enum Motion {
     // Window slide, driven by the Presenter over the window frame.
     static let arriveDuration: TimeInterval = 0.4
