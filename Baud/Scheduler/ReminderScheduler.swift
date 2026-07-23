@@ -1,4 +1,5 @@
 import Foundation
+import Observation
 
 /// A reminder held back because the moment was bad, with the time it was
 /// originally due so the queue can drain oldest first.
@@ -8,21 +9,24 @@ struct HeldReminder {
 }
 
 /// Decides when reminders fire. It owns each reminder's next fire Date, the held
-/// queue, a single coordinating wait, and wake-from-sleep recovery. No AppKit and
-/// no SwiftUI, so it runs and is tested with no window on screen.
+/// queue, pause state, a single coordinating wait, and wake-from-sleep recovery.
+/// No AppKit and no SwiftUI, so it runs and is tested with no window on screen.
+/// Observable so the menu can read the next fire and the pause state.
 @MainActor
+@Observable
 final class ReminderScheduler {
     private(set) var reminders: [Reminder]
     private(set) var nextFire: [UUID: Date] = [:]
     private(set) var held: [UUID: HeldReminder] = [:]
+    private(set) var pausedUntil: Date?
 
-    private let now: () -> Date
-    private let deliver: (Reminder) -> Void
-    private let gate: SuppressionGate
-    private let cooldown: TimeInterval
-    private let recheckInterval: TimeInterval
-    private var lastDelivery: Date?
-    private var wait: Task<Void, Never>?
+    @ObservationIgnored private let now: () -> Date
+    @ObservationIgnored private let deliver: (Reminder) -> Void
+    @ObservationIgnored private let gate: SuppressionGate
+    @ObservationIgnored private let cooldown: TimeInterval
+    @ObservationIgnored private let recheckInterval: TimeInterval
+    @ObservationIgnored private var lastDelivery: Date?
+    @ObservationIgnored private var wait: Task<Void, Never>?
 
     init(
         reminders: [Reminder],
@@ -56,6 +60,56 @@ final class ReminderScheduler {
         tick()
     }
 
+    // Pause: silence the app without quitting it. Due reminders are skipped, not
+    // held, so resuming does not pop a backlog.
+
+    func pause(until date: Date) {
+        pausedUntil = date
+        arm()
+    }
+
+    func pause(for duration: TimeInterval) {
+        pause(until: now().addingTimeInterval(duration))
+    }
+
+    func pauseIndefinitely() {
+        pausedUntil = .distantFuture
+        arm()
+    }
+
+    func resume() {
+        pausedUntil = nil
+        arm()
+    }
+
+    func isPaused(at current: Date) -> Bool {
+        guard let until = pausedUntil else { return false }
+        return current < until
+    }
+
+    var isPaused: Bool { isPaused(at: now()) }
+
+    /// Replace the reminder set after an edit, keeping the schedule for reminders
+    /// that are unchanged and dropping it for those removed or disabled.
+    func update(reminders newReminders: [Reminder]) {
+        reminders = newReminders
+        let current = now()
+        let enabledIDs = Set(newReminders.filter(\.isEnabled).map(\.id))
+        for reminder in newReminders where reminder.isEnabled && nextFire[reminder.id] == nil {
+            nextFire[reminder.id] = current.addingTimeInterval(reminder.interval)
+        }
+        for id in nextFire.keys where !enabledIDs.contains(id) { nextFire[id] = nil }
+        for id in held.keys where !enabledIDs.contains(id) { held[id] = nil }
+        arm()
+    }
+
+    /// The soonest enabled reminder and when it next fires, for display.
+    func nextUp() -> (reminder: Reminder, date: Date)? {
+        reminders
+            .compactMap { reminder in nextFire[reminder.id].map { (reminder, $0) } }
+            .min(by: { $0.1 < $1.1 })
+    }
+
     /// The next fire for every enabled reminder, measured from a reference time.
     func seed(reference: Date) {
         nextFire = [:]
@@ -64,15 +118,18 @@ final class ReminderScheduler {
         }
     }
 
-    /// Deliver each due reminder when the moment is good, otherwise hold it. The
-    /// reminder's own schedule advances either way, so a held reminder does not
-    /// re-fire every tick. Occurrences missed while asleep collapse to one.
+    /// Deliver each due reminder when the moment is good, otherwise hold it (or
+    /// skip it while paused). The schedule advances either way, so a held or
+    /// paused reminder does not re-fire every tick, and missed occurrences
+    /// collapse to one.
     @discardableResult
     func fireDue(at current: Date) -> [Reminder] {
         var delivered: [Reminder] = []
+        let paused = isPaused(at: current)
         for reminder in reminders where reminder.isEnabled {
             guard let due = nextFire[reminder.id], due <= current else { continue }
             nextFire[reminder.id] = Self.nextOccurrence(after: current, anchor: due, interval: reminder.interval)
+            guard !paused else { continue }
             if deliverOrHold(reminder, due: due, at: current) {
                 delivered.append(reminder)
             }
@@ -113,7 +170,7 @@ final class ReminderScheduler {
     }
 
     private func canDeliver(at current: Date) -> Bool {
-        gate.currentReason() == nil && cooldownElapsed(at: current)
+        !isPaused(at: current) && gate.currentReason() == nil && cooldownElapsed(at: current)
     }
 
     private func cooldownElapsed(at current: Date) -> Bool {
@@ -128,20 +185,28 @@ final class ReminderScheduler {
 
     private func tick() {
         let current = now()
+        if let until = pausedUntil, until != .distantFuture, current >= until {
+            pausedUntil = nil
+        }
         fireDue(at: current)
         processHeld(at: current)
         arm()
     }
 
-    /// A single coordinating wait. It wakes for the next fire date, and also on a
-    /// recheck cadence while anything is held, since there is no fire date for
-    /// "the meeting ended".
+    /// A single coordinating wait. It wakes for the next fire date, on a recheck
+    /// cadence while anything is held, and at the end of a timed pause.
     private func arm() {
         wait?.cancel()
-        var target = nextFire.values.min()
-        if !held.isEmpty {
-            let recheck = now().addingTimeInterval(recheckInterval)
-            target = min(target ?? recheck, recheck)
+        let current = now()
+        var target: Date?
+        if let until = pausedUntil {
+            target = until == .distantFuture ? nil : until
+        } else {
+            target = nextFire.values.min()
+            if !held.isEmpty {
+                let recheck = current.addingTimeInterval(recheckInterval)
+                target = min(target ?? recheck, recheck)
+            }
         }
         guard let target else {
             wait = nil
