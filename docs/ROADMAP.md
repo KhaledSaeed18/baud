@@ -11,11 +11,11 @@ Build phases in order. Each teaches a distinct part of the platform. Do not skip
 Teaches: AppKit windowing, NSHostingView, screen geometry. This is the riskiest unknown, do it first.
 
 ## Phase 1: the character
-- [ ] CharacterState and CharacterMood enums with transitions
-- [ ] Code-drawn geometric character in SwiftUI
-- [ ] Motion.swift with all animation constants in one place
-- [ ] Arriving, idle blink, speaking, acknowledged, snoozed, leaving
-- [ ] Reduce Motion path (fades, no springs)
+- [x] CharacterState and CharacterMood enums with transitions
+- [x] Code-drawn geometric character in SwiftUI
+- [x] Motion.swift with all animation constants in one place
+- [x] Arriving, idle blink, speaking, acknowledged, snoozed, leaving
+- [x] Reduce Motion path (fades, no springs)
 Teaches: SwiftUI animation, state machines, accessibility. Follow docs/CHARACTER.md exactly.
 
 ## Phase 2: reminders and scheduling

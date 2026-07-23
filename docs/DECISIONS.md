@@ -84,3 +84,15 @@ LSUIElement visible. Swift 5 mode keeps Phase 0 free of warnings; adopting Swift
 checking is a later, deliberate step.
 **Rejected:** XcodeGen or Tuist (an extra dependency for a single-target app), and generating the
 Info.plist from build settings (less visible than a real file).
+
+## ADR-011: Arrival overshoot on the window frame, micro-motion in SwiftUI
+**Decision:** The signature arrival slides the whole window up into the corner with a back-out
+bezier timing function for a small overshoot, not a physics spring on the window. The character's
+own beats (blink, breathing, hop, tip, nod, straighten) are SwiftUI springs inside the view. Reduce
+Motion replaces the window slide with a fade and skips the character springs.
+**Why:** AppKit has no spring solver for a window frame; a back-out bezier gives the overshoot the
+motion spec asks for without driving the frame by hand every display tick. The character's
+micro-motion stays in SwiftUI, where springs are cheap and where CHARACTER.md's gestures live.
+**Rejected:** Animating the character's offset inside a fixed, taller window (it would have to
+extend off-screen to hide the start, which fights the corner geometry). A hand-driven spring on the
+window frame via a display link (more code than the beat warrants for v1).
