@@ -99,11 +99,15 @@ final class ReminderScheduler {
     /// Replace the reminder set after an edit, keeping the schedule for reminders
     /// that are unchanged and dropping it for those removed or disabled.
     func update(reminders newReminders: [Reminder]) {
+        let previousIntervals = Dictionary(uniqueKeysWithValues: reminders.map { ($0.id, $0.interval) })
         reminders = newReminders
         let current = now()
         let enabledIDs = Set(newReminders.filter(\.isEnabled).map(\.id))
-        for reminder in newReminders where reminder.isEnabled && nextFire[reminder.id] == nil {
-            nextFire[reminder.id] = current.addingTimeInterval(reminder.interval)
+        for reminder in newReminders where reminder.isEnabled {
+            // A changed interval takes effect now, not after the stale fire date.
+            if nextFire[reminder.id] == nil || previousIntervals[reminder.id] != reminder.interval {
+                nextFire[reminder.id] = current.addingTimeInterval(reminder.interval)
+            }
         }
         for id in nextFire.keys where !enabledIDs.contains(id) { nextFire[id] = nil }
         for id in held.keys where !enabledIDs.contains(id) { held[id] = nil }
