@@ -29,13 +29,16 @@ private struct GeneralSettingsView: View {
 
     var body: some View {
         Form {
-            Toggle("Launch at login", isOn: $launchAtLogin)
-                .onChange(of: launchAtLogin) { _, newValue in
-                    model.setLaunchAtLogin(newValue)
-                }
+            Section {
+                Toggle("Launch at login", isOn: $launchAtLogin)
+                    .onChange(of: launchAtLogin) { _, newValue in
+                        model.setLaunchAtLogin(newValue)
+                    }
+            } footer: {
+                Text("Baud starts with your Mac and waits in the menu bar. It has no Dock icon.")
+            }
         }
         .formStyle(.grouped)
-        .padding()
     }
 }
 
