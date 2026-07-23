@@ -28,8 +28,10 @@ private struct GeneralSettingsView: View {
     }
 
     @AppStorage(AppModel.snoozeMinutesKey) private var snoozeMinutes = AppModel.defaultSnoozeMinutes
+    @AppStorage(AppModel.autoDismissSecondsKey) private var autoDismissSeconds = AppModel.defaultAutoDismissSeconds
 
     private static let snoozeChoices = [5, 10, 15, 30]
+    private static let autoDismissChoices = [5, 8, 15, 30]
 
     var body: some View {
         Form {
@@ -50,6 +52,16 @@ private struct GeneralSettingsView: View {
                 }
             } footer: {
                 Text("How long a snoozed reminder waits before it returns.")
+            }
+
+            Section {
+                Picker("Leave on its own after", selection: $autoDismissSeconds) {
+                    ForEach(Self.autoDismissChoices, id: \.self) { seconds in
+                        Text("\(seconds) seconds").tag(seconds)
+                    }
+                }
+            } footer: {
+                Text("With no click, the character waits this long and then leaves. That counts as a normal outcome, not a miss.")
             }
 
             Section {
