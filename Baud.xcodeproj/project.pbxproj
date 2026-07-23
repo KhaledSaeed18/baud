@@ -6,8 +6,19 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXContainerItemProxy section */
+		100000000000000000000C0B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 100000000000000000000A01 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 100000000000000000000A04;
+			remoteInfo = Baud;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		100000000000000000000A05 /* Baud.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Baud.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		100000000000000000000C05 /* BaudTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = BaudTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -29,10 +40,22 @@
 			path = Baud;
 			sourceTree = "<group>";
 		};
+		100000000000000000000C09 /* BaudTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = BaudTests;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		100000000000000000000A07 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		100000000000000000000C07 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -46,6 +69,7 @@
 			isa = PBXGroup;
 			children = (
 				100000000000000000000A09 /* Baud */,
+				100000000000000000000C09 /* BaudTests */,
 				100000000000000000000A03 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -54,6 +78,7 @@
 			isa = PBXGroup;
 			children = (
 				100000000000000000000A05 /* Baud.app */,
+				100000000000000000000C05 /* BaudTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -81,6 +106,27 @@
 			productReference = 100000000000000000000A05 /* Baud.app */;
 			productType = "com.apple.product-type.application";
 		};
+		100000000000000000000C04 /* BaudTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 100000000000000000000C01 /* Build configuration list for PBXNativeTarget "BaudTests" */;
+			buildPhases = (
+				100000000000000000000C06 /* Sources */,
+				100000000000000000000C07 /* Frameworks */,
+				100000000000000000000C08 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				100000000000000000000C0A /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				100000000000000000000C09 /* BaudTests */,
+			);
+			name = BaudTests;
+			productName = BaudTests;
+			productReference = 100000000000000000000C05 /* BaudTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -93,6 +139,10 @@
 				TargetAttributes = {
 					100000000000000000000A04 = {
 						CreatedOnToolsVersion = 26.6;
+					};
+					100000000000000000000C04 = {
+						CreatedOnToolsVersion = 26.6;
+						TestTargetID = 100000000000000000000A04;
 					};
 				};
 			};
@@ -111,12 +161,20 @@
 			projectRoot = "";
 			targets = (
 				100000000000000000000A04 /* Baud */,
+				100000000000000000000C04 /* BaudTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		100000000000000000000A08 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		100000000000000000000C08 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -133,7 +191,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		100000000000000000000C06 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		100000000000000000000C0A /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 100000000000000000000A04 /* Baud */;
+			targetProxy = 100000000000000000000C0B /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		100000000000000000000B02 /* Debug */ = {
@@ -298,6 +371,42 @@
 			};
 			name = Release;
 		};
+		100000000000000000000C02 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.khaledsaeed.baudTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Baud.app/Contents/MacOS/Baud";
+			};
+			name = Debug;
+		};
+		100000000000000000000C03 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 0.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.khaledsaeed.baudTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Baud.app/Contents/MacOS/Baud";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -315,6 +424,15 @@
 			buildConfigurations = (
 				100000000000000000000B05 /* Debug */,
 				100000000000000000000B06 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		100000000000000000000C01 /* Build configuration list for PBXNativeTarget "BaudTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				100000000000000000000C02 /* Debug */,
+				100000000000000000000C03 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
