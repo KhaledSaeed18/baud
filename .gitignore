@@ -14,8 +14,4 @@ xcuserdata/
 .build/
 .swiftpm/
 
-*.p12
-*.provisionprofile
-notarize.env
-
 .vscode/
