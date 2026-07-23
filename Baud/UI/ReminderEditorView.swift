@@ -56,24 +56,39 @@ private struct ReminderRow: View {
         .padding(.vertical, 2)
     }
 
-    // An interval under a minute would round to "Every 0 min"; show seconds instead.
+    // Show the interval in the same unit the editor would, so a 2 hr reminder does
+    // not read as "Every 120 min" and a short one does not round to "Every 0 min".
     private var intervalText: String {
-        let seconds = Int(reminder.interval)
-        if seconds < 60 { return "Every \(seconds) sec" }
-        return "Every \(seconds / 60) min"
+        let split = IntervalUnit.split(reminder.interval)
+        return "Every \(split.value) \(split.unit.short)"
     }
 }
 
 private struct ReminderDetailView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var draft: Reminder
+    @State private var value: Int
+    @State private var unit: IntervalUnit
     private let onSave: (Reminder) -> Void
     private let onDelete: (() -> Void)?
 
+    private static let minutePresets = [15, 20, 30, 45, 60]
+
     init(reminder: Reminder, onSave: @escaping (Reminder) -> Void, onDelete: (() -> Void)?) {
         _draft = State(initialValue: reminder)
+        let split = IntervalUnit.split(reminder.interval)
+        _value = State(initialValue: split.value)
+        _unit = State(initialValue: split.unit)
         self.onSave = onSave
         self.onDelete = onDelete
+    }
+
+    private var intervalSeconds: TimeInterval {
+        TimeInterval(clamped(value)) * unit.secondsPerUnit
+    }
+
+    private func clamped(_ raw: Int) -> Int {
+        min(max(raw, unit.range.lowerBound), unit.range.upperBound)
     }
 
     var body: some View {
@@ -86,20 +101,38 @@ private struct ReminderDetailView: View {
                         Text(name(for: mood)).tag(mood)
                     }
                 }
-                LabeledContent("Every") {
-                    HStack(spacing: 8) {
-                        TextField("", value: minutes, format: .number)
+
+                Section("Interval") {
+                    presets
+                    LabeledContent("Every") {
+                        HStack(spacing: 8) {
+                            TextField("", value: $value, format: .number)
+                                .labelsHidden()
+                                .textFieldStyle(.roundedBorder)
+                                .frame(width: 56)
+                                .multilineTextAlignment(.trailing)
+                            Stepper("Interval", value: $value, in: unit.range, step: unit.step)
+                                .labelsHidden()
+                            Picker("Unit", selection: $unit) {
+                                ForEach(IntervalUnit.allCases) { option in
+                                    Text(option.short).tag(option)
+                                }
+                            }
                             .labelsHidden()
-                            .textFieldStyle(.roundedBorder)
-                            .frame(width: 56)
-                            .multilineTextAlignment(.trailing)
-                        Text("minutes").foregroundStyle(.secondary)
-                        Stepper("Interval", value: minutes, in: 1...600, step: 5)
-                            .labelsHidden()
+                            .pickerStyle(.menu)
+                            .fixedSize()
+                        }
                     }
                 }
             }
             .formStyle(.grouped)
+            // Switching units can leave the value out of the new range; typing can
+            // exceed it. Re-clamp on both so the shown value is always valid.
+            .onChange(of: unit) { _, _ in value = clamped(value) }
+            .onChange(of: value) { _, entered in
+                let capped = clamped(entered)
+                if capped != entered { value = capped }
+            }
 
             HStack {
                 if let onDelete {
@@ -111,6 +144,7 @@ private struct ReminderDetailView: View {
                 Spacer()
                 Button("Cancel") { dismiss() }
                 Button("Save") {
+                    draft.interval = intervalSeconds
                     onSave(draft)
                     dismiss()
                 }
@@ -118,16 +152,23 @@ private struct ReminderDetailView: View {
             }
         }
         .padding()
-        .frame(width: 380)
+        .frame(width: 420)
     }
 
-    // The editor works in whole minutes; the model stores seconds. Clamped in the
-    // setter so a typed value stays in range even though the field has no bounds.
-    private var minutes: Binding<Int> {
-        Binding(
-            get: { max(1, Int((draft.interval / 60).rounded())) },
-            set: { draft.interval = TimeInterval(min(max($0, 1), 600) * 60) }
-        )
+    // Minute quick-picks. Each sets the value and the unit; the matching one reads
+    // as selected while the interval equals it.
+    private var presets: some View {
+        HStack(spacing: 8) {
+            ForEach(Self.minutePresets, id: \.self) { preset in
+                let isSelected = unit == .minutes && clamped(value) == preset
+                Button("\(preset)m") {
+                    unit = .minutes
+                    value = preset
+                }
+                .buttonStyle(.bordered)
+                .tint(isSelected ? .accentColor : nil)
+            }
+        }
     }
 
     private func name(for mood: CharacterMood) -> String {
@@ -138,5 +179,54 @@ private struct ReminderDetailView: View {
         case .posture: return "Posture"
         case .custom: return "Custom"
         }
+    }
+}
+
+// Seconds, minutes, or hours for the interval editor. The model always stores
+// seconds; the unit only shapes how a value is entered and shown.
+private enum IntervalUnit: CaseIterable, Identifiable {
+    case seconds, minutes, hours
+
+    var id: Self { self }
+
+    var short: String {
+        switch self {
+        case .seconds: return "sec"
+        case .minutes: return "min"
+        case .hours: return "hr"
+        }
+    }
+
+    var secondsPerUnit: TimeInterval {
+        switch self {
+        case .seconds: return 1
+        case .minutes: return 60
+        case .hours: return 3600
+        }
+    }
+
+    var range: ClosedRange<Int> {
+        switch self {
+        case .seconds: return 5...3600
+        case .minutes: return 1...600
+        case .hours: return 1...24
+        }
+    }
+
+    var step: Int {
+        switch self {
+        case .seconds: return 5
+        case .minutes: return 5
+        case .hours: return 1
+        }
+    }
+
+    // Read a stored interval back as the largest unit that divides it evenly, so
+    // 7200s shows as 2 hr and 90s stays 90 sec rather than a rounded minute.
+    static func split(_ interval: TimeInterval) -> (value: Int, unit: IntervalUnit) {
+        let total = max(1, Int(interval.rounded()))
+        if total % 3600 == 0 { return (total / 3600, .hours) }
+        if total % 60 == 0 { return (total / 60, .minutes) }
+        return (total, .seconds)
     }
 }
