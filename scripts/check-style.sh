@@ -17,27 +17,41 @@ report() {
   fail=1
 }
 
+# The rulebook files define the banned words and authorship trailers by listing
+# them, so they are exempt from those two content checks. Every other check
+# still applies to them.
+is_rulebook() {
+  case "$1" in
+    CLAUDE.md|docs/CONVENTIONS.md) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
 for f in $files; do
   [ -f "$f" ] || continue
 
-  hits=$(LC_ALL=C grep -nP '\xe2\x80\x94|\xe2\x80\x93' "$f" || true)
+  # perl matches the raw UTF-8 bytes so the check runs on BSD (macOS) userland,
+  # where grep has no -P. em dash is E2 80 94, en dash is E2 80 93.
+  hits=$(perl -ne 'print "$.:$_" if /\xe2\x80\x94|\xe2\x80\x93/' "$f" || true)
   if [ -n "$hits" ]; then
     report "em dash or en dash in $f (use a comma, a colon, or rewrite)" "$hits"
   fi
 
-  hits=$(LC_ALL=C grep -nP '\xf0\x9f[\x80-\xbf][\x80-\xbf]|\xe2\x9c[\x80-\xbf]|\xe2\x9d[\x80-\xbf]|\xef\xb8\x8f' "$f" || true)
+  hits=$(perl -ne 'print "$.:$_" if /\xf0\x9f[\x80-\xbf][\x80-\xbf]|\xe2\x9c[\x80-\xbf]|\xe2\x9d[\x80-\xbf]|\xef\xb8\x8f/' "$f" || true)
   if [ -n "$hits" ]; then
     report "emoji in $f" "$hits"
   fi
 
-  hits=$(grep -niE '\b(seamless|robust|comprehensive|cutting-edge|intuitive|innovative|next-level|world-class|leverage|utilize|delve)\b' "$f" || true)
-  if [ -n "$hits" ]; then
-    report "banned filler word in $f" "$hits"
-  fi
+  if ! is_rulebook "$f"; then
+    hits=$(grep -niE '\b(seamless|robust|comprehensive|cutting-edge|intuitive|innovative|next-level|world-class|leverage|utilize|delve)\b' "$f" || true)
+    if [ -n "$hits" ]; then
+      report "banned filler word in $f" "$hits"
+    fi
 
-  hits=$(grep -nE 'Co-Authored-By|Generated with|Co-authored-by' "$f" || true)
-  if [ -n "$hits" ]; then
-    report "authorship trailer in $f" "$hits"
+    hits=$(grep -nE 'Co-Authored-By|Generated with|Co-authored-by' "$f" || true)
+    if [ -n "$hits" ]; then
+      report "authorship trailer in $f" "$hits"
+    fi
   fi
 
   # Exclamation marks only inside Swift string literals, where UI copy lives.
