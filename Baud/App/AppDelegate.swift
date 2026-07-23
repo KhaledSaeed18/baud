@@ -14,7 +14,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         reminders = store.load()
 
-        let scheduler = ReminderScheduler(reminders: reminders) { [weak self] reminder in
+        let scheduler = ReminderScheduler(reminders: reminders, gate: SystemSuppressionGate()) { [weak self] reminder in
             self?.presenter.show(mood: reminder.mood, message: reminder.message)
         }
         scheduler.start()
