@@ -26,12 +26,12 @@ Teaches: SwiftUI animation, state machines, accessibility. Follow docs/CHARACTER
 Teaches: timers that survive sleep, file persistence, Codable.
 
 ## Phase 3: the suppression gate (the important one)
-- [ ] SuppressionGate behind a protocol so it is testable
-- [ ] Full screen detection, idle detection, screen lock detection
-- [ ] Camera and microphone in use detection
-- [ ] Do Not Disturb and Focus detection where reliable
-- [ ] Held queue: one held reminder delivered when context clears, never a flush
-- [ ] Unit tests for hold, not drop, and for one-at-a-time delivery
+- [x] SuppressionGate behind a protocol so it is testable
+- [x] Full screen detection, idle detection, screen lock detection
+- [x] Camera and microphone in use detection
+- [ ] Do Not Disturb and Focus detection where reliable (deferred: no reliable public API, see ADR-014)
+- [x] Held queue: one held reminder delivered when context clears, never a flush
+- [x] Unit tests for hold, not drop, and for one-at-a-time delivery
 Teaches: NSWorkspace, CGEventSource, capture device APIs. This is what makes the app good.
 
 ## Phase 4: control surface

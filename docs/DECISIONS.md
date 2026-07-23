@@ -119,3 +119,21 @@ as test host. Swift Testing is the current default and reads cleanly. Debug alre
 testability enabled.
 **Rejected:** A separate core framework the app and tests both link (more structure than a
 single-target app needs now); XCTest (Swift Testing is the newer default).
+
+## ADR-014: Suppression is a gate protocol plus a scheduler-owned held queue
+**Decision:** SuppressionGate is a @MainActor protocol that answers "why hold, or nil if clear."
+SystemSuppressionGate detects screen lock, an active camera or microphone, a full-screen frontmost
+window (by a size heuristic), and idle beyond a threshold. The scheduler owns the held queue: a
+suppressed reminder is held with its original due time, its schedule still advances, and held
+reminders drain one at a time on a recheck cadence, never as a flush. A cooldown spaces every
+appearance, held or not, so two characters never arrive back to back.
+**Why:** The protocol seam lets the hold logic be unit-tested by driving bad-moment states directly,
+with no real system state. Environmental detection belongs in the gate; queue orchestration and
+timing belong in the scheduler. Camera or microphone catches calls; full screen catches
+presentations and full-screen video, the cases that get an app deleted.
+**Deferred:** Do Not Disturb, Focus, and screen-recording detection have no reliable public API, so
+they are not reported rather than reported wrongly. Cooldown is measured from last delivery for now;
+measuring from the user's dismissal can come when the presenter reports outcomes back.
+**Rejected:** Private CoreGraphics space SPI for full screen (fragile, undocumented); parsing the
+Focus assertion files (version-specific and brittle); flushing the queue when context clears (four
+characters in a row after a meeting).
