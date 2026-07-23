@@ -5,7 +5,7 @@ struct BaudApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
 
     var body: some Scene {
-        MenuBarExtra("Baud", systemImage: "circle.dashed") {
+        MenuBarExtra("Baud", image: "MenuBarIcon") {
             MenuBarView(model: appDelegate.model)
         }
         Settings {
