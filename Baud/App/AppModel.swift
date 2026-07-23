@@ -12,7 +12,10 @@ final class AppModel {
 
     @ObservationIgnored let presenter = Presenter()
     @ObservationIgnored private let store: ReminderStore
-    @ObservationIgnored private var scheduler: ReminderScheduler?
+    // Tracked, not ignored: the menu's body can run before start() creates the
+    // scheduler, and it must re-evaluate once the scheduler exists or it would
+    // show "No reminders scheduled" forever.
+    private var scheduler: ReminderScheduler?
 
     init(store: ReminderStore = ReminderStore()) {
         self.store = store
