@@ -137,3 +137,18 @@ measuring from the user's dismissal can come when the presenter reports outcomes
 **Rejected:** Private CoreGraphics space SPI for full screen (fragile, undocumented); parsing the
 Focus assertion files (version-specific and brittle); flushing the queue when context clears (four
 characters in a row after a meeting).
+
+## ADR-015: Pause skips, the app model is the UI seam, the character auto-dismisses
+**Decision:** Pause is first class in the scheduler. A paused reminder is skipped: its schedule
+advances and nothing is held, so resuming does not pop a backlog, unlike a bad-moment hold which is
+delivered later. The UI talks to one observable AppModel that owns the store, scheduler, and
+presenter and turns intents into calls; the scheduler is @Observable so the menu reads the next
+fire and pause state directly. With no character interaction yet, a shown reminder auto-dismisses
+after a short idle, which is a normal outcome, never tracked as a miss.
+**Why:** Skipping on pause matches the user's intent to silence the app, where holding matches the
+app's intent not to interrupt a bad moment; they are different and behave differently. A single
+AppModel keeps the wiring in one place and the views dumb. Auto-dismiss is needed because the menu
+no longer drives the character off screen, and clicking the character is a later phase.
+**Rejected:** Holding during pause (a surprise pop on resume); letting each view reach into the
+scheduler directly (leaks it across the UI); leaving the character on screen until the next
+interaction (it would never leave).

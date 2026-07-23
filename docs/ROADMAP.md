@@ -35,10 +35,10 @@ Teaches: timers that survive sleep, file persistence, Codable.
 Teaches: NSWorkspace, CGEventSource, capture device APIs. This is what makes the app good.
 
 ## Phase 4: control surface
-- [ ] MenuBarExtra: next reminder, pause for a duration, settings, quit
-- [ ] Pause as a first class feature
-- [ ] Settings scene, launch at login via SMAppService
-- [ ] Reminder editor: add, edit, enable, disable custom reminders
+- [x] MenuBarExtra: next reminder, pause for a duration, settings, quit
+- [x] Pause as a first class feature
+- [x] Settings scene, launch at login via SMAppService
+- [x] Reminder editor: add, edit, enable, disable custom reminders
 Teaches: MenuBarExtra, SMAppService, form UI.
 
 ## Phase 5: ship
