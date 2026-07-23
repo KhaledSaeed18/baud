@@ -86,7 +86,18 @@ private struct ReminderDetailView: View {
                         Text(name(for: mood)).tag(mood)
                     }
                 }
-                Stepper("Every \(Int(draft.interval / 60)) min", value: minutes, in: 1...600)
+                LabeledContent("Every") {
+                    HStack(spacing: 8) {
+                        TextField("", value: minutes, format: .number)
+                            .labelsHidden()
+                            .textFieldStyle(.roundedBorder)
+                            .frame(width: 56)
+                            .multilineTextAlignment(.trailing)
+                        Text("minutes").foregroundStyle(.secondary)
+                        Stepper("Interval", value: minutes, in: 1...600, step: 5)
+                            .labelsHidden()
+                    }
+                }
             }
             .formStyle(.grouped)
 
@@ -110,8 +121,13 @@ private struct ReminderDetailView: View {
         .frame(width: 380)
     }
 
-    private var minutes: Binding<Double> {
-        Binding(get: { draft.interval / 60 }, set: { draft.interval = $0 * 60 })
+    // The editor works in whole minutes; the model stores seconds. Clamped in the
+    // setter so a typed value stays in range even though the field has no bounds.
+    private var minutes: Binding<Int> {
+        Binding(
+            get: { max(1, Int((draft.interval / 60).rounded())) },
+            set: { draft.interval = TimeInterval(min(max($0, 1), 600) * 60) }
+        )
     }
 
     private func name(for mood: CharacterMood) -> String {
