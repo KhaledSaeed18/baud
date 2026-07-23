@@ -9,14 +9,11 @@ final class Presenter {
     private let character = CharacterModel()
     private var window: BaudWindow?
     private let contentSize = CGSize(width: 210, height: 220)
-    private var moodIndex = 0
 
-    func show() {
+    func show(mood: CharacterMood, message: String) {
         guard character.state == .hidden else { return }
 
-        let mood = CharacterMood.allCases[moodIndex % CharacterMood.allCases.count]
-        moodIndex += 1
-        character.begin(mood: mood, message: message(for: mood))
+        character.begin(mood: mood, message: message)
         Task { await arrive() }
     }
 
@@ -122,13 +119,4 @@ final class Presenter {
         }
     }
 
-    private func message(for mood: CharacterMood) -> String {
-        switch mood {
-        case .move: return "Time to stand up."
-        case .water: return "Water."
-        case .eyes: return "Look away for twenty seconds."
-        case .posture: return "Straighten up."
-        case .custom: return "Been a while. Stretch?"
-        }
-    }
 }

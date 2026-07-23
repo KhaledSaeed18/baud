@@ -3,21 +3,21 @@ import AppKit
 
 @main
 struct BaudApp: App {
-    @State private var presenter = Presenter()
+    @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
 
     var body: some Scene {
         MenuBarExtra("Baud", systemImage: "circle.dashed") {
-            Button("Show reminder") {
-                presenter.show()
+            Button("Show a reminder now") {
+                appDelegate.showNextForTesting()
             }
             Button("Acknowledge") {
-                presenter.acknowledge()
+                appDelegate.acknowledge()
             }
             Button("Snooze") {
-                presenter.snooze()
+                appDelegate.snooze()
             }
             Button("Dismiss") {
-                presenter.dismiss()
+                appDelegate.dismiss()
             }
             Divider()
             Button("Quit") {
