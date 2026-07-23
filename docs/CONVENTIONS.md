@@ -156,4 +156,5 @@ plain and native.
 - Style hook passes.
 - New character mood is one enum case plus its motion, with no view branching added.
 - Roadmap box ticked, ADR appended if a decision was made.
-- Changes staged and described. Commit only after approval.
+- Committed as its own micro-commit; pushed to main when the unit of work is complete. See the Git
+  rules in CLAUDE.md.
