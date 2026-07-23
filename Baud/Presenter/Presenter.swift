@@ -19,6 +19,7 @@ final class Presenter {
     private let speakingBeat: TimeInterval = 2.2
     private let autoDismissDelay: TimeInterval = 8
     private var currentOutcome: ((ReminderOutcome) -> Void)?
+    private var mouseMonitor: Any?
 
     func show(reminder: Reminder, onOutcome: @escaping (ReminderOutcome) -> Void) {
         guard character.state == .hidden else { return }
@@ -26,6 +27,20 @@ final class Presenter {
         currentOutcome = onOutcome
         character.begin(mood: reminder.mood, message: reminder.message)
         Task { await arrive() }
+    }
+
+    private func dismissByUser() {
+        guard character.state == .speaking || character.state == .idle else { return }
+        report(.dismissed)
+        character.acknowledge()
+        Task { await leave(afterBeat: true) }
+    }
+
+    private func snoozeByUser() {
+        guard character.state == .speaking || character.state == .idle else { return }
+        report(.snoozed)
+        character.snooze()
+        Task { await leave(afterBeat: true) }
     }
 
     private func arrive() async {
@@ -46,6 +61,7 @@ final class Presenter {
             await slide(window, to: resting, duration: Motion.arriveDuration, timing: Motion.arriveTiming())
         }
 
+        startTrackingMouse()
         character.speak()
         try? await Task.sleep(for: .seconds(speakingBeat))
         guard character.state == .speaking else { return }
@@ -76,6 +92,7 @@ final class Presenter {
         }
 
         window.orderOut(nil)
+        stopTrackingMouse()
         character.finishLeaving()
     }
 
@@ -89,7 +106,12 @@ final class Presenter {
         if let window { return window }
 
         let created = BaudWindow(contentRect: CGRect(origin: .zero, size: contentSize))
-        created.contentView = NSHostingView(rootView: CharacterView(model: character))
+        let content = InteractiveCharacterView(
+            model: character,
+            onDismiss: { [weak self] in self?.dismissByUser() },
+            onSnooze: { [weak self] in self?.snoozeByUser() }
+        )
+        created.contentView = InteractiveHostingView(rootView: content)
         window = created
         return created
     }
@@ -102,6 +124,33 @@ final class Presenter {
 
     private var reduceMotion: Bool {
         NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
+    }
+
+    private func startTrackingMouse() {
+        updateClickThrough()
+        guard mouseMonitor == nil else { return }
+        mouseMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.mouseMoved]) { [weak self] _ in
+            MainActor.assumeIsolated {
+                self?.updateClickThrough()
+            }
+        }
+    }
+
+    private func stopTrackingMouse() {
+        if let monitor = mouseMonitor {
+            NSEvent.removeMonitor(monitor)
+            mouseMonitor = nil
+        }
+        window?.ignoresMouseEvents = true
+    }
+
+    /// The window is click-through except when the cursor is over the bottom
+    /// strip where the character and its controls sit. The bubble area above
+    /// stays click-through.
+    private func updateClickThrough() {
+        guard let window else { return }
+        let strip = CGRect(x: window.frame.minX, y: window.frame.minY, width: window.frame.width, height: 160)
+        window.ignoresMouseEvents = !strip.contains(NSEvent.mouseLocation)
     }
 
     private func slide(_ window: NSWindow, to frame: CGRect, duration: TimeInterval, timing: CAMediaTimingFunction) async {
