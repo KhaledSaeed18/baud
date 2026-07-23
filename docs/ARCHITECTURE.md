@@ -1,7 +1,5 @@
 # Architecture
 
-PLACEHOLDER NAME: "Companion" throughout. Not final.
-
 For code style, naming, file layout, and design rules, see `docs/CONVENTIONS.md`.
 For the character states and motion, see `docs/CHARACTER.md`.
 

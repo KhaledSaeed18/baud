@@ -1,7 +1,5 @@
 # Product
 
-PLACEHOLDER NAME: "Companion" throughout. Not final.
-
 ## One-liner
 A small animated character that lives on your Mac and reminds you to move, drink water, rest your
 eyes, and whatever else you tell it. Free, open source, native.

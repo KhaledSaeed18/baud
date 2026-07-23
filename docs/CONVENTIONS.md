@@ -94,9 +94,9 @@ Threshold is two. Two occurrences means extract. Do not pre-abstract a single us
 
 ## 7. Project structure
 
-    Companion/
+    Baud/
       App/
-        CompanionApp.swift          // @main, wiring
+        BaudApp.swift               // @main, wiring
       Reminders/
         Reminder.swift              // the model
         ReminderStore.swift         // JSON persistence in Application Support
@@ -106,7 +106,7 @@ Threshold is two. Two occurrences means extract. Do not pre-abstract a single us
         SuppressionGate.swift       // "is now a good moment"
         IdleMonitor.swift
       Presenter/
-        CompanionWindow.swift       // borderless NSWindow subclass, canBecomeKey = false
+        BaudWindow.swift            // borderless NSWindow subclass, canBecomeKey = false
         WindowPositioner.swift      // corner math against visibleFrame
         Presenter.swift             // show(reminder:), hide()
       Character/

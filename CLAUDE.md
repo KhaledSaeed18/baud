@@ -1,12 +1,12 @@
-# Companion (placeholder name): Claude Code Context
+# Baud: Claude Code Context
 
-PLACEHOLDER NAME: the project is currently called "Companion". The name is not decided.
-Every occurrence of "Companion" / "companion" in this repo is a placeholder to be replaced later.
-Do not spend effort on naming or branding copy until the name is chosen.
+Baud is a macOS app that lives on your desktop and reminds you to move, drink water, rest your
+eyes, and anything custom you define. Instead of a system notification, a small animated character
+slides in from a screen corner, delivers the reminder, and leaves. Free and open source. Native
+Swift, no Electron.
 
-A macOS desktop companion that reminds you to move, drink water, rest your eyes, and anything
-custom you define. Instead of a system notification, a small animated character slides in from a
-screen corner, delivers the reminder, and leaves. Free and open source. Native Swift, no Electron.
+Naming: the app is "Baud" as a proper noun (prose, UI copy, Swift types, the Xcode target, and
+Baud.app). Lowercase "baud" for the bundle identifier and the repository directory.
 
 This file is the always-loaded context. It holds only non-negotiable rules and pointers. The full
 style and structure guide lives in `docs/CONVENTIONS.md`. Read it before writing code.

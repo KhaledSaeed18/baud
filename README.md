@@ -1,4 +1,4 @@
-# Companion (placeholder name)
+# Baud
 
 A small character that lives on your Mac and reminds you to move, drink water, and rest your eyes.
 Free and open source. Native Swift, no Electron.
@@ -24,9 +24,9 @@ Early development. This is a learning project first. See `docs/ROADMAP.md`.
 Requires macOS 14 or later and Xcode 15 or later.
 
     git clone <repo>
-    cd companion
+    cd baud
     scripts/install-hooks.sh
-    open Companion.xcodeproj
+    open Baud.xcodeproj
 
 ## Contributing
 

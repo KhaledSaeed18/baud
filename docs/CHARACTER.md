@@ -1,6 +1,6 @@
 # Character
 
-PLACEHOLDER NAME: "Companion" throughout. The character itself is also unnamed.
+The app is named Baud. The character itself has no name.
 
 This document is the spec for the character: its states, what triggers each, and how it moves.
 Read this before any UI or animation work. It is the design contract for both the v1 code-drawn
