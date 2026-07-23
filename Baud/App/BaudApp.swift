@@ -8,5 +8,8 @@ struct BaudApp: App {
         MenuBarExtra("Baud", systemImage: "circle.dashed") {
             MenuBarView(model: appDelegate.model)
         }
+        Settings {
+            SettingsView(model: appDelegate.model)
+        }
     }
 }
