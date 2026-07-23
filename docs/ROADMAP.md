@@ -1,15 +1,13 @@
 # Roadmap
 
-PLACEHOLDER NAME: "Companion" throughout. Not final.
-
 Build phases in order. Each teaches a distinct part of the platform. Do not skip ahead.
 
 ## Phase 0: the window appears
-- [ ] Xcode project, SwiftUI macOS 14 target, LSUIElement = true, no sandbox
-- [ ] Borderless transparent NSWindow subclass, canBecomeKey and canBecomeMain return false
-- [ ] Floating window level, ignoresMouseEvents, correct collectionBehavior
-- [ ] Position at bottom trailing corner of visibleFrame
-- [ ] Show a placeholder shape, slide it in and out on a manual trigger
+- [x] Xcode project, SwiftUI macOS 14 target, LSUIElement = true, no sandbox
+- [x] Borderless transparent NSWindow subclass, canBecomeKey and canBecomeMain return false
+- [x] Floating window level, ignoresMouseEvents, correct collectionBehavior
+- [x] Position at bottom trailing corner of visibleFrame
+- [x] Show a placeholder shape, slide it in and out on a manual trigger
 Teaches: AppKit windowing, NSHostingView, screen geometry. This is the riskiest unknown, do it first.
 
 ## Phase 1: the character
@@ -44,7 +42,7 @@ Teaches: NSWorkspace, CGEventSource, capture device APIs. This is what makes the
 Teaches: MenuBarExtra, SMAppService, form UI.
 
 ## Phase 5: ship
-- [ ] Choose the real name, replace the placeholder everywhere
+- [x] Choose the real name, replace the placeholder everywhere (baud)
 - [ ] Icon and menu bar template image
 - [ ] Sign, notarize, staple
 - [ ] GitHub Releases, Homebrew cask, MIT licence, README

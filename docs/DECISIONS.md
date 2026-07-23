@@ -59,3 +59,28 @@ paths for one concept).
 **Decision:** A pre-commit hook greps for em dashes, emojis, and exclamation marks in UI strings.
 **Why:** Writing rules stated in a doc get violated by anyone writing prose quickly, including the
 author and any agent. A hook catches it at the only moment that matters.
+
+## ADR-009: The project is named baud
+**Decision:** The app is named baud, replacing the "Companion" placeholder everywhere. Written
+"Baud" as a proper noun in prose, UI copy, Swift types (`BaudApp`, `BaudWindow`), the Xcode target,
+and the built app (Baud.app). Lowercase "baud" for the bundle identifier and the repository
+directory.
+**Why:** The placeholder blocked committing a real target, bundle identifier, and window class
+name. Baud is short, sits in the product's domain (a unit of signalling rate), and avoids the
+wellness-app register the product positions against.
+**Consequence:** The Phase 5 rename task is done early. The character stays unnamed; only the app
+has a name.
+
+## ADR-010: Xcode project committed directly, synchronized file groups, Swift 5 language mode
+**Decision:** Baud.xcodeproj is committed to the repo, no XcodeGen or Tuist. It uses the Xcode 16
+file-system synchronized group format (objectVersion 77): the target references the Baud/ folder,
+so adding a source file needs no project edit. Info.plist is an explicit file under
+Baud/Supporting, excluded from the synchronized target membership so it is not copied as a
+resource. The target builds in Swift 5 language mode for now.
+**Why:** A committed project matches `open Baud.xcodeproj` in the README and needs no extra tooling
+to build. Synchronized groups keep the project file stable across the phased build, so it is not
+hand-edited every phase. An explicit, readable Info.plist fits the hackable ethos and keeps
+LSUIElement visible. Swift 5 mode keeps Phase 0 free of warnings; adopting Swift 6 data-race
+checking is a later, deliberate step.
+**Rejected:** XcodeGen or Tuist (an extra dependency for a single-target app), and generating the
+Info.plist from build settings (less visible than a real file).
