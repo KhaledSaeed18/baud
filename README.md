@@ -3,9 +3,9 @@
 <img src="https://shieldcn.dev/header/graph.svg?title=Baud&subtitle=Break%20reminders%20with%20a%20character%2C%20for%20macOS&theme=amber&logo=https%3A%2F%2Fraw.githubusercontent.com%2FKhaledSaeed18%2Fbaud%2Fmain%2FBaud%2FResources%2FAssets.xcassets%2FAppIcon.appiconset%2Ficon_256.png&size=lg&align=center" width="820" alt="Baud" />
 
 <p>
-  <img src="https://shieldcn.dev/badge/platform-macOS%2014%2B-amber.svg?variant=secondary&logo=apple&logoColor=ffffff" alt="Platform: macOS 14+" />
+  <img src="https://shieldcn.dev/badge/platform-macOS%2014%2B-f59e0b.svg?variant=secondary&logo=apple&logoColor=ffffff" alt="Platform: macOS 14+" />
   <img src="https://shieldcn.dev/badge/Swift-5-orange.svg?variant=secondary&logo=swift&logoColor=ffffff" alt="Swift 5" />
-  <img src="https://shieldcn.dev/badge/interface-menu%20bar-amber.svg?variant=secondary" alt="Interface: menu bar" />
+  <img src="https://shieldcn.dev/badge/interface-menu%20bar-f59e0b.svg?variant=secondary" alt="Interface: menu bar" />
   <a href="LICENSE"><img src="https://shieldcn.dev/badge/license-MIT-green.svg?variant=secondary" alt="License: MIT" /></a>
   <a href="https://github.com/KhaledSaeed18/baud/stargazers"><img src="https://shieldcn.dev/github/stars/KhaledSaeed18/baud.svg" alt="GitHub stars" /></a>
 </p>
