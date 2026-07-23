@@ -8,6 +8,7 @@ struct MenuBarView: View {
 
     var body: some View {
         nextReminder
+        heldStatus
         Divider()
         pauseControls
         Divider()
@@ -27,6 +28,20 @@ struct MenuBarView: View {
             Text("Next: \(next.reminder.label) at \(next.date.formatted(date: .omitted, time: .shortened))")
         } else {
             Text("No reminders scheduled")
+        }
+    }
+
+    // Baud staying quiet on purpose (a call, a locked screen) should be
+    // visible, or a held reminder looks like a missed one.
+    @ViewBuilder
+    private var heldStatus: some View {
+        let held = model.heldReminders
+        if let first = held.first {
+            if held.count == 1 {
+                Text("Holding \(first.label) for a quiet moment")
+            } else {
+                Text("Holding \(held.count) reminders for a quiet moment")
+            }
         }
     }
 

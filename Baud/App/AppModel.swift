@@ -41,6 +41,14 @@ final class AppModel {
         scheduler?.nextUp()
     }
 
+    /// Reminders waiting out a bad moment, oldest due first, for the menu.
+    var heldReminders: [Reminder] {
+        guard let scheduler else { return [] }
+        return scheduler.held.values
+            .sorted { $0.originalDue < $1.originalDue }
+            .map(\.reminder)
+    }
+
     func pause(for duration: TimeInterval) { scheduler?.pause(for: duration) }
     func pauseIndefinitely() { scheduler?.pauseIndefinitely() }
     func resume() { scheduler?.resume() }
