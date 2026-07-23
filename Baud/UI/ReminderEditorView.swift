@@ -46,7 +46,7 @@ private struct ReminderRow: View {
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(reminder.label)
-                Text("Every \(Int(reminder.interval / 60)) min")
+                Text(intervalText)
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -56,6 +56,13 @@ private struct ReminderRow: View {
             }
         }
         .padding(.vertical, 2)
+    }
+
+    // An interval under a minute would round to "Every 0 min"; show seconds instead.
+    private var intervalText: String {
+        let seconds = Int(reminder.interval)
+        if seconds < 60 { return "Every \(seconds) sec" }
+        return "Every \(seconds / 60) min"
     }
 }
 
