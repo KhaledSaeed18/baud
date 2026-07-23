@@ -34,7 +34,7 @@ Real advantages over the paid competitors:
   and shares characters is something a closed app structurally cannot have. This is the strongest
   long-term differentiator.
 - **Native beats Electron.** Stretchly loses on being unsigned Electron with Gatekeeper friction.
-  A native, notarized, small, free, open app wins that comparison outright.
+  A native, small, free, open app wins that comparison outright.
 - **Scriptable and hackable.** Reminders as data, a config file people can edit, and eventually a
   way to trigger a reminder from a script.
 

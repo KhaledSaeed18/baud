@@ -154,6 +154,7 @@ scheduler directly (leaks it across the UI); leaving the character on screen unt
 interaction (it would never leave).
 
 ## ADR-016: The config file is a public interface; distribution is a notarised zip and a cask
+**Status:** the distribution half is superseded by ADR-018. The config-file half still holds.
 **Decision:** reminders.json is a supported public interface with a documented, stable schema (see
 docs/CONFIG.md); format changes will be noted there. Baud ships as a Developer ID signed, hardened,
 notarised, stapled zip built by scripts/release.sh, distributed through GitHub Releases and a
@@ -184,3 +185,15 @@ what that means.
 SwiftUI's internal view tree, and untestable); making the whole window interactive whenever visible
 (captures clicks over the transparent bubble area too); a right-click menu for snooze (less
 discoverable than a one-click control, which PRODUCT.md asks for).
+
+## ADR-018: Ship from source; drop the signing, notarisation, and Homebrew pipeline
+**Decision:** Baud is built from source: clone, open in Xcode, run. The signing and notarisation
+script, its env example, and the Homebrew cask are removed. This supersedes the distribution half of
+ADR-016. The config-file interface and the code-drawn icon pipeline from ADR-016 are unaffected.
+**Why:** Baud is a learning project first (PRODUCT.md). A signing and notarisation flow needs a paid
+Developer ID and adds release machinery that earns nothing while the app has no release. Building
+from source is the honest state today and keeps the repo free of tooling nobody runs. When there is
+a signed build to ship, a new ADR can reinstate the pipeline.
+**Rejected:** Keeping the unused release script and cask template around (dead tooling that reads as
+supported); shipping unsigned zips through GitHub Releases now (Gatekeeper friction with no upside
+before there is a real build to hand out).

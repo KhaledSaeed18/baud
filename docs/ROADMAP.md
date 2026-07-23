@@ -44,8 +44,7 @@ Teaches: MenuBarExtra, SMAppService, form UI.
 ## Phase 5: ship
 - [x] Choose the real name, replace the placeholder everywhere (baud)
 - [x] Icon and menu bar template image
-- [ ] Sign, notarize, staple (script in scripts/release.sh; needs a Developer ID to run)
-- [ ] GitHub Releases, Homebrew cask, MIT licence, README (licence, README, and cask template done; release upload pending a signed build)
+- [x] MIT licence and README, built from source (no signing or cask for now, see ADR-018)
 - [x] Decide the config file format is stable enough to document as a public interface
 
 ## Later, not v1

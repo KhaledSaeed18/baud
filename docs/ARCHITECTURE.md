@@ -97,5 +97,5 @@ is a first class feature. The user must be able to silence the app instantly wit
 
 ## Distribution
 - macOS 14+, `LSUIElement = true`, no sandbox.
-- Sign and notarize with a Developer ID for clean installs.
-- GitHub Releases plus a Homebrew cask. Free, open source, MIT.
+- Built from source: clone, open in Xcode, run. Free, open source, MIT.
+- No signing, notarisation, or Homebrew cask for now. See ADR-018.
