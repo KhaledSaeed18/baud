@@ -1,9 +1,16 @@
 import AppKit
 import SwiftUI
 
+/// How a shown reminder ended.
+enum ReminderOutcome {
+    case dismissed
+    case snoozed
+    case autoDismissed
+}
+
 /// Owns the overlay window and drives the character through its states. It
-/// performs; the only timing it holds is the short beats between states. Phase 2
-/// hands it reminders instead of the menu driving it.
+/// performs; the only timing it holds is the short beats between states. The
+/// scheduler hands it a reminder, and it reports how the reminder ended.
 @MainActor
 final class Presenter {
     private let character = CharacterModel()
@@ -11,30 +18,14 @@ final class Presenter {
     private let contentSize = CGSize(width: 210, height: 220)
     private let speakingBeat: TimeInterval = 2.2
     private let autoDismissDelay: TimeInterval = 8
+    private var currentOutcome: ((ReminderOutcome) -> Void)?
 
-    func show(mood: CharacterMood, message: String) {
+    func show(reminder: Reminder, onOutcome: @escaping (ReminderOutcome) -> Void) {
         guard character.state == .hidden else { return }
 
-        character.begin(mood: mood, message: message)
+        currentOutcome = onOutcome
+        character.begin(mood: reminder.mood, message: reminder.message)
         Task { await arrive() }
-    }
-
-    func acknowledge() {
-        guard character.state == .idle || character.state == .speaking else { return }
-        character.acknowledge()
-        Task { await leave(afterBeat: true) }
-    }
-
-    func snooze() {
-        guard character.state == .idle || character.state == .speaking else { return }
-        character.snooze()
-        Task { await leave(afterBeat: true) }
-    }
-
-    func dismiss() {
-        guard character.state != .hidden, character.state != .leaving else { return }
-        character.leave()
-        Task { await leave(afterBeat: false) }
     }
 
     private func arrive() async {
@@ -64,6 +55,7 @@ final class Presenter {
         // outcome, not a failure, and is never tracked as one.
         try? await Task.sleep(for: .seconds(autoDismissDelay))
         guard character.state == .idle else { return }
+        report(.autoDismissed)
         character.leave()
         await leave(afterBeat: false)
     }
@@ -85,6 +77,12 @@ final class Presenter {
 
         window.orderOut(nil)
         character.finishLeaving()
+    }
+
+    private func report(_ outcome: ReminderOutcome) {
+        let callback = currentOutcome
+        currentOutcome = nil
+        callback?(outcome)
     }
 
     private func ensureWindow() -> BaudWindow {

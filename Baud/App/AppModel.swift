@@ -21,7 +21,7 @@ final class AppModel {
 
     func start() {
         let scheduler = ReminderScheduler(reminders: reminders, gate: SystemSuppressionGate()) { [weak self] reminder in
-            self?.presenter.show(mood: reminder.mood, message: reminder.message)
+            self?.deliver(reminder)
         }
         scheduler.start()
         self.scheduler = scheduler
@@ -60,7 +60,22 @@ final class AppModel {
     /// Show the first enabled reminder now, without waiting out an interval.
     func preview() {
         guard let reminder = reminders.first(where: \.isEnabled) else { return }
-        presenter.show(mood: reminder.mood, message: reminder.message)
+        presenter.show(reminder: reminder) { _ in }
+    }
+
+    private func deliver(_ reminder: Reminder) {
+        presenter.show(reminder: reminder) { [weak self] outcome in
+            self?.handle(outcome, for: reminder)
+        }
+    }
+
+    private func handle(_ outcome: ReminderOutcome, for reminder: Reminder) {
+        switch outcome {
+        case .snoozed:
+            scheduler?.snooze(reminder.id, by: 10 * 60)
+        case .dismissed, .autoDismissed:
+            break
+        }
     }
 
     @discardableResult
