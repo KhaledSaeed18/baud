@@ -296,6 +296,40 @@ struct ReminderSchedulerTests {
         #expect(scheduler.nextFire[r.id] == r.fireAt)
     }
 
+    @Test func dueOnADisallowedDayWaitsForTheNextAllowedOne() {
+        let calendar = Calendar.current
+        let now = Date()
+        let today = calendar.component(.weekday, from: now)
+        let tomorrow = today % 7 + 1
+        let dayAfter = tomorrow % 7 + 1
+
+        var r = reminder(interval: 3600)
+        r.weekdays = [dayAfter]
+        var delivered = 0
+        let scheduler = ReminderScheduler(reminders: [r], deliver: { _ in delivered += 1 })
+        scheduler.seed(reference: now.addingTimeInterval(-3600))
+
+        scheduler.fireDue(at: now)
+        #expect(delivered == 0)
+        #expect(scheduler.held.isEmpty)
+        if let next = scheduler.nextFire[r.id] {
+            #expect(calendar.component(.weekday, from: next) == dayAfter)
+            #expect(next > now)
+        } else {
+            Issue.record("expected a deferred fire date")
+        }
+    }
+
+    @Test func nextAllowedDayStartLandsOnTheRightWeekday() {
+        let calendar = Calendar.current
+        let now = Date()
+        for target in 1...7 {
+            let next = ReminderScheduler.nextAllowedDayStart(after: now, weekdays: [target])
+            #expect(calendar.component(.weekday, from: next) == target)
+            #expect(next > now)
+        }
+    }
+
     @Test func nextOccurrenceIsStrictlyAfterCurrent() {
         let anchor = Date(timeIntervalSince1970: 0)
         let onBoundary = ReminderScheduler.nextOccurrence(after: anchor.addingTimeInterval(120), anchor: anchor, interval: 60)

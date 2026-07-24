@@ -21,6 +21,11 @@ struct Reminder: Identifiable, Codable, Equatable {
     /// Nil means the whole day.
     var activeHours: DailyWindow?
 
+    /// The days this reminder lives on, as Calendar weekday numbers (1 is
+    /// Sunday). Due on another day, it waits for the next allowed day. Nil or
+    /// empty means every day.
+    var weekdays: Set<Int>?
+
     /// Set, this is a one-time reminder: it fires once at this moment and is
     /// then disabled, and `interval` is ignored. Nil means it repeats.
     var fireAt: Date?
@@ -37,6 +42,7 @@ struct Reminder: Identifiable, Codable, Equatable {
         isBuiltIn: Bool = false,
         snoozeInterval: TimeInterval? = nil,
         activeHours: DailyWindow? = nil,
+        weekdays: Set<Int>? = nil,
         fireAt: Date? = nil
     ) {
         self.id = id
@@ -48,6 +54,7 @@ struct Reminder: Identifiable, Codable, Equatable {
         self.isBuiltIn = isBuiltIn
         self.snoozeInterval = snoozeInterval
         self.activeHours = activeHours
+        self.weekdays = weekdays
         self.fireAt = fireAt
     }
 }

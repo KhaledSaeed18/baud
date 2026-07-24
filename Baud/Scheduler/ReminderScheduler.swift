@@ -188,6 +188,12 @@ final class ReminderScheduler {
         let silenced = isPaused(at: current) || quiet(current)
         for reminder in reminders where reminder.isEnabled {
             guard let due = nextFire[reminder.id], due <= current else { continue }
+            // Due on a day it does not live on: wait for the next allowed day.
+            if let days = reminder.weekdays, !days.isEmpty,
+               !days.contains(Calendar.current.component(.weekday, from: current)) {
+                nextFire[reminder.id] = Self.nextAllowedDayStart(after: current, weekdays: days)
+                continue
+            }
             // Due outside its active hours: wait for the window to open rather
             // than firing now or losing the day.
             if let window = reminder.activeHours, !window.contains(current) {
@@ -220,6 +226,19 @@ final class ReminderScheduler {
         held[next.reminder.id] = nil
         record(delivery: next.reminder, at: current)
         return next.reminder
+    }
+
+    /// The start of the next day whose weekday is in the set, strictly after
+    /// the given date. Falls back a week out for an impossible set.
+    static func nextAllowedDayStart(after date: Date, weekdays: Set<Int>, calendar: Calendar = .current) -> Date {
+        for offset in 1...7 {
+            guard let candidate = calendar.date(byAdding: .day, value: offset, to: date) else { continue }
+            let start = calendar.startOfDay(for: candidate)
+            if weekdays.contains(calendar.component(.weekday, from: start)) {
+                return start
+            }
+        }
+        return calendar.startOfDay(for: date.addingTimeInterval(7 * 86400))
     }
 
     /// The first occurrence strictly after `current`, stepping by interval from
