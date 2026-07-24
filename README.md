@@ -6,6 +6,7 @@
   <img src="https://shieldcn.dev/badge/platform-macOS%2014%2B-f59e0b.svg?variant=secondary&logo=apple&logoColor=ffffff" alt="Platform: macOS 14+" />
   <img src="https://shieldcn.dev/badge/Swift-5-orange.svg?variant=secondary&logo=swift&logoColor=ffffff" alt="Swift 5" />
   <img src="https://shieldcn.dev/badge/interface-menu%20bar-f59e0b.svg?variant=secondary" alt="Interface: menu bar" />
+  <a href="https://github.com/KhaledSaeed18/baud/actions/workflows/ci.yml"><img src="https://shieldcn.dev/github/ci/KhaledSaeed18/baud.svg?workflow=ci.yml&branch=main&variant=secondary" alt="CI status" /></a>
   <a href="LICENSE"><img src="https://shieldcn.dev/badge/license-MIT-green.svg?variant=secondary" alt="License: MIT" /></a>
   <a href="https://github.com/KhaledSaeed18/baud/stargazers"><img src="https://shieldcn.dev/github/stars/KhaledSaeed18/baud.svg" alt="GitHub stars" /></a>
 </p>
