@@ -12,6 +12,7 @@ struct MenuBarView: View {
         Divider()
         pauseControls
         Divider()
+        Button("Quick add\u{2026}") { model.showQuickAdd() }
         Button("Settings\u{2026}") {
             NSApp.activate()
             openSettings()

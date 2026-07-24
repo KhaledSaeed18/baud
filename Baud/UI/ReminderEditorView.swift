@@ -325,8 +325,9 @@ private struct ReminderDetailView: View {
 }
 
 // Seconds, minutes, or hours for the interval editor. The model always stores
-// seconds; the unit only shapes how a value is entered and shown.
-private enum IntervalUnit: CaseIterable, Identifiable {
+// seconds; the unit only shapes how a value is entered and shown. Internal:
+// the quick add panel formats its preview with the same units.
+enum IntervalUnit: CaseIterable, Identifiable {
     case seconds, minutes, hours
 
     var id: Self { self }

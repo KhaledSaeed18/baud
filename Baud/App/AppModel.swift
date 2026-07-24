@@ -262,6 +262,21 @@ final class AppModel {
         persist()
     }
 
+    @ObservationIgnored private lazy var quickAddPanel = QuickAddPanelController()
+
+    func showQuickAdd() {
+        quickAddPanel.show(model: self)
+    }
+
+    /// Parse one plain sentence and add the reminder it describes. Nil means
+    /// the sentence was not understood and nothing was added.
+    @discardableResult
+    func quickAdd(_ input: String) -> Reminder? {
+        guard let reminder = QuickAddParser.parse(input) else { return nil }
+        add(reminder)
+        return reminder
+    }
+
     func add(_ reminder: Reminder) {
         reminders.append(reminder)
         persist()
