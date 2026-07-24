@@ -29,9 +29,11 @@ private struct GeneralSettingsView: View {
 
     @AppStorage(AppModel.snoozeMinutesKey) private var snoozeMinutes = AppModel.defaultSnoozeMinutes
     @AppStorage(AppModel.autoDismissSecondsKey) private var autoDismissSeconds = AppModel.defaultAutoDismissSeconds
+    @AppStorage(AppModel.idleMinutesKey) private var idleMinutes = AppModel.defaultIdleMinutes
 
     private static let snoozeChoices = [5, 10, 15, 30]
     private static let autoDismissChoices = [5, 8, 15, 30]
+    private static let idleChoices = [1, 2, 5, 10]
 
     var body: some View {
         Form {
@@ -62,6 +64,20 @@ private struct GeneralSettingsView: View {
                 }
             } footer: {
                 Text("With no click, the character waits this long and then leaves. That counts as a normal outcome, not a miss.")
+            }
+
+            Section {
+                Picker("Hold when away for", selection: $idleMinutes) {
+                    ForEach(Self.idleChoices, id: \.self) { minutes in
+                        if minutes == 1 {
+                            Text("1 minute").tag(minutes)
+                        } else {
+                            Text("\(minutes) minutes").tag(minutes)
+                        }
+                    }
+                }
+            } footer: {
+                Text("After this long with no input, reminders are held and delivered when you return.")
             }
 
             Section {
