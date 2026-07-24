@@ -89,6 +89,10 @@ private struct ReminderRow: View {
         if let window = reminder.activeHours {
             base += ", \(TimeOfDay.label(window.startMinutes)) to \(TimeOfDay.label(window.endMinutes))"
         }
+        if let days = reminder.weekdays, !days.isEmpty, days.count < 7 {
+            let symbols = Calendar.current.veryShortWeekdaySymbols
+            base += ", " + days.sorted().map { symbols[$0 - 1] }.joined(separator: " ")
+        }
         // An interval under the gap is not an error: the reminder is held and
         // paced by the gap instead. Say so quietly rather than warn.
         guard reminder.interval < TimeInterval(cooldownSeconds) else { return base }
@@ -107,6 +111,7 @@ private struct ReminderDetailView: View {
     @State private var activeEndMinutes: Int
     @State private var isOneTime: Bool
     @State private var fireAt: Date
+    @State private var selectedWeekdays: Set<Int>
     private let onSave: (Reminder) -> Void
     private let onDelete: (() -> Void)?
     @AppStorage(AppModel.cooldownSecondsKey) private var cooldownSeconds = AppModel.defaultCooldownSeconds
@@ -134,6 +139,7 @@ private struct ReminderDetailView: View {
         _activeEndMinutes = State(initialValue: reminder.activeHours?.endMinutes ?? 17 * 60)
         _isOneTime = State(initialValue: reminder.isOneTime)
         _fireAt = State(initialValue: reminder.fireAt ?? Date().addingTimeInterval(3600))
+        _selectedWeekdays = State(initialValue: reminder.weekdays ?? Set(1...7))
         self.onSave = onSave
         self.onDelete = onDelete
     }
@@ -212,6 +218,15 @@ private struct ReminderDetailView: View {
                                 .foregroundStyle(.secondary)
                         }
                     }
+
+                    Section("Days") {
+                        weekdayChips
+                        if selectedWeekdays.count < 7, !selectedWeekdays.isEmpty {
+                            Text("Due on another day, it waits for the next of these.")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
                 }
 
                 Section("Snooze") {
@@ -245,6 +260,11 @@ private struct ReminderDetailView: View {
                     draft.interval = intervalSeconds
                     draft.snoozeInterval = snoozeMinutes.map { TimeInterval($0 * 60) }
                     draft.fireAt = isOneTime ? fireAt : nil
+                    // All days or none both mean no restriction; an empty set
+                    // would be a reminder that never fires.
+                    draft.weekdays = !isOneTime && selectedWeekdays.count < 7 && !selectedWeekdays.isEmpty
+                        ? selectedWeekdays
+                        : nil
                     // Equal ends would be an empty window, a reminder that can
                     // never appear; treat it as no restriction instead. A
                     // one-time reminder has a moment, not hours.
@@ -259,6 +279,22 @@ private struct ReminderDetailView: View {
         }
         .padding()
         .frame(width: 420)
+    }
+
+    // Sunday first, matching Calendar weekday numbering; the symbols come from
+    // the user's locale.
+    private var weekdayChips: some View {
+        HStack(spacing: 6) {
+            let symbols = Calendar.current.veryShortWeekdaySymbols
+            ForEach(1...7, id: \.self) { day in
+                let isOn = selectedWeekdays.contains(day)
+                Button(symbols[day - 1]) {
+                    if isOn { selectedWeekdays.remove(day) } else { selectedWeekdays.insert(day) }
+                }
+                .buttonStyle(.bordered)
+                .tint(isOn ? Color.accentColor : nil)
+            }
+        }
     }
 
     // Minute quick-picks. Each sets the value and the unit; the matching one reads
