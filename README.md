@@ -53,6 +53,8 @@ On top of the built-ins:
 - **Suppression**: a call (camera or microphone in use), a full screen window, a locked screen, or
   time away all hold a reminder rather than drop it. Held reminders return one at a time, never as a
   flush after a meeting.
+- **Meeting aware, if you want it**: turn it on and Baud stays quiet while a calendar event is on,
+  delivering afterwards. Read-only, on this Mac only, off until you ask for it.
 - **Pause**: silence Baud for thirty minutes, an hour, three hours, or until you resume, from the
   menu bar without quitting.
 - **Quiet hours**: a daily window, evenings and nights if you like, in which reminders are skipped
@@ -118,8 +120,8 @@ Settings has four tabs:
 
 - **General**: launch at login and a character preview.
 - **Timing**: the snooze length, how long the character waits before leaving on its own, when being
-  away holds reminders (and whether it does), whether full screen and calls hold them, the
-  smallest gap between two appearances, and a daily quiet-hours window.
+  away holds reminders (and whether it does), whether full screen, calls, and calendar events hold
+  them, the smallest gap between two appearances, and a daily quiet-hours window.
 - **Reminders**: enable, disable, add, edit, and delete reminders. Each reminder can carry its own
   snooze length and its own active hours, or use the app-wide defaults.
 - **About**: version and a link to the source.

@@ -178,8 +178,11 @@ that catch the cases that matter most still fire. When in doubt, do not interrup
 over showing.
 
 The capture, full-screen, and idle holds can each be turned off in Settings > Timing; all default to
-on, and the screen-lock hold is not optional. The gate reads these through provider closures handed
-in by the app model, so a change applies on the next check and the gate never learns a settings key.
+on, and the screen-lock hold is not optional. The calendar hold is the inverse: off by default,
+because it needs read access to the local event store, which is the user's to grant; while a
+non-all-day event is on, reminders are held. The calendar is read on-device only, never stored or
+sent. The gate reads all of these through provider closures handed in by the app model, so a change
+applies on the next check and the gate never learns a settings key.
 
 ## Character
 
@@ -298,6 +301,7 @@ closures), so every change applies without a restart.
 | `fullScreenHoldEnabled` | true    | Whether a full-screen frontmost app holds reminders.     |
 | `captureHoldEnabled`    | true    | Whether an active camera or microphone holds reminders.  |
 | `cooldownSeconds`       | 120     | Minimum gap between two appearances.                     |
+| `calendarHoldEnabled`   | false   | Whether a calendar event in progress holds reminders. Needs calendar access. |
 | `quietHoursEnabled`     | false   | Whether the daily quiet window applies.                  |
 | `quietStartMinutes`     | 1260    | Quiet window start, minutes after midnight (21:00).      |
 | `quietEndMinutes`       | 480     | Quiet window end, minutes after midnight (08:00).        |
