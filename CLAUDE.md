@@ -44,6 +44,7 @@ Baud/                                app target: SwiftUI, menu bar only (LSUIEle
   Reminders/                         what exists; data only, no AppKit, no timing
     Reminder.swift                   the model: label, message, interval, mood, enabled, built-in
     DefaultReminders.swift           the built-ins (move, water, eyes, posture), fixed ids
+    Preset.swift                     one-click starting points that retune the built-ins
     ReminderStore.swift              JSON load and save in Application Support
   Scheduler/                         when it fires; no AppKit, no SwiftUI, tested headless
     ReminderScheduler.swift          fire dates, held queue, pause, one coordinating wait, wake recovery

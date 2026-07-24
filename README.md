@@ -50,6 +50,8 @@ The built-in reminders, each with its own character mood:
 On top of the built-ins:
 
 - **Custom reminders**: any label, any message, any mood, any interval, added from Settings.
+- **One-click presets**: Recommended, Desk day, Short bursts, More water, or Rest my eyes retune
+  the built-ins in one go. Your own reminders are never touched, and anything can be changed after.
 - **Suppression**: a call (camera or microphone in use), a full screen window, a locked screen, or
   time away all hold a reminder rather than drop it. Held reminders return one at a time, never as a
   flush after a meeting.
