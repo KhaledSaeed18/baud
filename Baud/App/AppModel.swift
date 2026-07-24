@@ -23,7 +23,7 @@ final class AppModel {
     }
 
     func start() {
-        let scheduler = ReminderScheduler(reminders: reminders, gate: SystemSuppressionGate()) { [weak self] reminder in
+        let scheduler = ReminderScheduler(reminders: reminders, gate: SystemSuppressionGate(idleThreshold: Self.idleThreshold)) { [weak self] reminder in
             self?.deliver(reminder)
         }
         scheduler.start()
@@ -87,6 +87,16 @@ final class AppModel {
     private var autoDismissDelay: TimeInterval {
         let stored = UserDefaults.standard.integer(forKey: Self.autoDismissSecondsKey)
         return TimeInterval(stored > 0 ? stored : Self.defaultAutoDismissSeconds)
+    }
+
+    /// UserDefaults key for how long the Mac sits with no input before
+    /// reminders are held, in minutes.
+    static let idleMinutesKey = "idleMinutes"
+    static let defaultIdleMinutes = 2
+
+    private static func idleThreshold() -> TimeInterval {
+        let stored = UserDefaults.standard.integer(forKey: idleMinutesKey)
+        return TimeInterval((stored > 0 ? stored : defaultIdleMinutes) * 60)
     }
 
     /// Show the first enabled reminder now, without waiting out an interval.

@@ -7,16 +7,22 @@ import CoreGraphics
 /// catch the cases that matter most. When in doubt, it does not interrupt.
 @MainActor
 struct SystemSuppressionGate: SuppressionGate {
-    var idleThreshold: TimeInterval = 120
+    // A provider, not a value, so a settings change applies on the next check
+    // without rebuilding the gate or restarting the scheduler.
+    private let idleThreshold: () -> TimeInterval
 
     private let idle = IdleMonitor()
     private let capture = CaptureMonitor()
+
+    init(idleThreshold: @escaping () -> TimeInterval = { 120 }) {
+        self.idleThreshold = idleThreshold
+    }
 
     func currentReason() -> SuppressionReason? {
         if isScreenLocked() { return .screenLocked }
         if capture.isMicrophoneActive() || capture.isCameraActive() { return .cameraOrMicrophoneInUse }
         if isFrontmostFullScreen() { return .fullScreen }
-        if idle.secondsSinceInput() >= idleThreshold { return .idle }
+        if idle.secondsSinceInput() >= idleThreshold() { return .idle }
         return nil
     }
 
