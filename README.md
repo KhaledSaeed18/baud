@@ -55,6 +55,8 @@ On top of the built-ins:
   flush after a meeting.
 - **Meeting aware, if you want it**: turn it on and Baud stays quiet while a calendar event is on,
   delivering afterwards. Read-only, on this Mac only, off until you ask for it.
+- **A break counts**: come back from a real break and every interval restarts from your return.
+  A walk never ends with "Move" the moment you sit down.
 - **Pause**: silence Baud for thirty minutes, an hour, three hours, or until you resume, from the
   menu bar without quitting.
 - **Quiet hours**: a daily window, evenings and nights if you like, in which reminders are skipped

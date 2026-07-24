@@ -140,6 +140,10 @@ the mouse, inset from `visibleFrame` so it clears the Dock and the menu bar.
   `DailyWindow`, pure and tested; the scheduler takes it as a `(Date) -> Bool` provider.
 - A reminder may carry its own active hours, a `DailyWindow` like lunch for a snack reminder. Due
   outside the window, it is deferred to the next window start, not skipped and not held.
+- Returning from a real break (away past the same "away for" threshold the idle hold uses) restarts
+  every interval from the return and drops stale held reminders. The break already was the pause; a
+  walk must not end with "Move". Best effort: an away period is noticed when a tick lands inside it,
+  and there is no polling beyond the existing recheck cadence.
 
 ### Reminder model
 
@@ -298,6 +302,7 @@ closures), so every change applies without a restart.
 | `autoDismissSeconds`    | 8       | How long the character waits for a click before leaving. |
 | `idleMinutes`           | 2       | Input-free minutes before reminders are held.            |
 | `idleHoldEnabled`       | true    | Whether being away holds reminders at all.               |
+| `awayResetEnabled`      | true    | Whether returning from a break restarts every interval.  |
 | `fullScreenHoldEnabled` | true    | Whether a full-screen frontmost app holds reminders.     |
 | `captureHoldEnabled`    | true    | Whether an active camera or microphone holds reminders.  |
 | `cooldownSeconds`       | 120     | Minimum gap between two appearances.                     |
