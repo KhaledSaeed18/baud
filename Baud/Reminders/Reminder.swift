@@ -21,6 +21,12 @@ struct Reminder: Identifiable, Codable, Equatable {
     /// Nil means the whole day.
     var activeHours: DailyWindow?
 
+    /// Set, this is a one-time reminder: it fires once at this moment and is
+    /// then disabled, and `interval` is ignored. Nil means it repeats.
+    var fireAt: Date?
+
+    var isOneTime: Bool { fireAt != nil }
+
     init(
         id: UUID = UUID(),
         label: String,
@@ -30,7 +36,8 @@ struct Reminder: Identifiable, Codable, Equatable {
         isEnabled: Bool = true,
         isBuiltIn: Bool = false,
         snoozeInterval: TimeInterval? = nil,
-        activeHours: DailyWindow? = nil
+        activeHours: DailyWindow? = nil,
+        fireAt: Date? = nil
     ) {
         self.id = id
         self.label = label
@@ -41,5 +48,6 @@ struct Reminder: Identifiable, Codable, Equatable {
         self.isBuiltIn = isBuiltIn
         self.snoozeInterval = snoozeInterval
         self.activeHours = activeHours
+        self.fireAt = fireAt
     }
 }

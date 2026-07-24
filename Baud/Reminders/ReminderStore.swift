@@ -21,7 +21,9 @@ struct ReminderStore {
         }
         // An unreadable file falls back to the built-ins in memory only. Writing
         // the defaults here would destroy a hand-edited file over one typo.
-        guard let reminders = try? JSONDecoder().decode([Reminder].self, from: data) else {
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        guard let reminders = try? decoder.decode([Reminder].self, from: data) else {
             return DefaultReminders.all
         }
         return reminders
@@ -34,6 +36,9 @@ struct ReminderStore {
         )
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        // Dates as ISO 8601 strings: the file is meant to be read and edited
+        // by hand, and a raw seconds count is not.
+        encoder.dateEncodingStrategy = .iso8601
         let data = try encoder.encode(reminders)
         try data.write(to: fileURL, options: .atomic)
     }
