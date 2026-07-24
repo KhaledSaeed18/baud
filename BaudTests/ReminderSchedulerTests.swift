@@ -214,6 +214,88 @@ struct ReminderSchedulerTests {
         #expect(scheduler.nextFire[r.id] == t0.addingTimeInterval(1800))
     }
 
+    @Test func oneTimeReminderFiresOnceAndOnlyOnce() {
+        let t0 = Date(timeIntervalSince1970: 0)
+        var r = reminder(interval: 60)
+        r.fireAt = t0.addingTimeInterval(300)
+        var delivered = 0
+        let scheduler = ReminderScheduler(reminders: [r], now: { t0 }, deliver: { _ in delivered += 1 })
+        scheduler.seed(reference: t0)
+        #expect(scheduler.nextFire[r.id] == r.fireAt)
+
+        scheduler.fireDue(at: t0.addingTimeInterval(300))
+        #expect(delivered == 1)
+        #expect(scheduler.nextFire[r.id] == nil)
+
+        // Nothing later, and an edit-driven update does not resurrect it.
+        scheduler.fireDue(at: t0.addingTimeInterval(600))
+        scheduler.update(reminders: [r])
+        #expect(delivered == 1)
+        #expect(scheduler.nextFire[r.id] == nil)
+    }
+
+    @Test func staleOneTimeReminderIsNotScheduled() {
+        let t0 = Date(timeIntervalSince1970: 100_000)
+        var r = reminder(interval: 60)
+        r.fireAt = t0.addingTimeInterval(-ReminderScheduler.oneTimeGrace - 1)
+        let scheduler = ReminderScheduler(reminders: [r], now: { t0 }, deliver: { _ in })
+        scheduler.seed(reference: t0)
+        #expect(scheduler.nextFire[r.id] == nil)
+    }
+
+    @Test func recentlyMissedOneTimeReminderStillFires() {
+        let t0 = Date(timeIntervalSince1970: 100_000)
+        var r = reminder(interval: 60)
+        r.fireAt = t0.addingTimeInterval(-300)
+        var delivered = 0
+        let scheduler = ReminderScheduler(reminders: [r], now: { t0 }, deliver: { _ in delivered += 1 })
+        scheduler.seed(reference: t0)
+        scheduler.fireDue(at: t0)
+        #expect(delivered == 1)
+    }
+
+    @Test func snoozedOneTimeReminderComesBackOnce() {
+        let t0 = Date(timeIntervalSince1970: 0)
+        var current = t0
+        var r = reminder(interval: 60)
+        r.fireAt = t0.addingTimeInterval(60)
+        var delivered = 0
+        let scheduler = ReminderScheduler(
+            reminders: [r],
+            cooldown: { 0 },
+            now: { current },
+            deliver: { _ in delivered += 1 }
+        )
+        scheduler.seed(reference: t0)
+
+        current = t0.addingTimeInterval(60)
+        scheduler.fireDue(at: current)
+        #expect(delivered == 1)
+
+        scheduler.snooze(r.id, by: 600)
+        current = t0.addingTimeInterval(660)
+        scheduler.fireDue(at: current)
+        #expect(delivered == 2)
+        #expect(scheduler.nextFire[r.id] == nil)
+    }
+
+    @Test func newDateRevivesASpentOneTimeReminder() {
+        let t0 = Date(timeIntervalSince1970: 0)
+        var current = t0
+        var r = reminder(interval: 60)
+        r.fireAt = t0.addingTimeInterval(60)
+        let scheduler = ReminderScheduler(reminders: [r], now: { current }, deliver: { _ in })
+        scheduler.seed(reference: t0)
+
+        current = t0.addingTimeInterval(60)
+        scheduler.fireDue(at: current)
+        #expect(scheduler.nextFire[r.id] == nil)
+
+        r.fireAt = t0.addingTimeInterval(900)
+        scheduler.update(reminders: [r])
+        #expect(scheduler.nextFire[r.id] == r.fireAt)
+    }
+
     @Test func nextOccurrenceIsStrictlyAfterCurrent() {
         let anchor = Date(timeIntervalSince1970: 0)
         let onBoundary = ReminderScheduler.nextOccurrence(after: anchor.addingTimeInterval(120), anchor: anchor, interval: 60)

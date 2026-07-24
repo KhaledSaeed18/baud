@@ -34,6 +34,9 @@ final class ReminderScheduler {
     @ObservationIgnored private let idleSeconds: () -> TimeInterval
     @ObservationIgnored private let awayResetThreshold: () -> TimeInterval?
     @ObservationIgnored private var awayStart: Date?
+    // One-time reminders that fired this run, so a reseed or an edit does not
+    // resurrect them within the grace window.
+    @ObservationIgnored private var firedOneTime: Set<UUID> = []
     @ObservationIgnored private let recheckInterval: TimeInterval
     @ObservationIgnored private var lastDelivery: Date?
     @ObservationIgnored private var wait: Task<Void, Never>?
@@ -101,6 +104,8 @@ final class ReminderScheduler {
     /// Postpone a reminder so it fires again after a short delay, for a snooze.
     func snooze(_ id: UUID, by delay: TimeInterval) {
         guard reminders.contains(where: { $0.id == id && $0.isEnabled }) else { return }
+        // A snoozed one-time reminder is not spent: it comes back once more.
+        firedOneTime.remove(id)
         nextFire[id] = now().addingTimeInterval(delay)
         arm()
     }
@@ -116,10 +121,22 @@ final class ReminderScheduler {
     /// that are unchanged and dropping it for those removed or disabled.
     func update(reminders newReminders: [Reminder]) {
         let previousIntervals = Dictionary(uniqueKeysWithValues: reminders.map { ($0.id, $0.interval) })
+        let previousFireAts = Dictionary(uniqueKeysWithValues: reminders.map { ($0.id, $0.fireAt) })
         reminders = newReminders
         let current = now()
         let enabledIDs = Set(newReminders.filter(\.isEnabled).map(\.id))
         for reminder in newReminders where reminder.isEnabled {
+            if reminder.isOneTime {
+                // A changed date revives a spent one-time reminder; otherwise a
+                // fired one stays fired.
+                if previousFireAts[reminder.id] != reminder.fireAt {
+                    firedOneTime.remove(reminder.id)
+                    nextFire[reminder.id] = oneTimeSchedule(for: reminder, from: current)
+                } else if nextFire[reminder.id] == nil, !firedOneTime.contains(reminder.id) {
+                    nextFire[reminder.id] = oneTimeSchedule(for: reminder, from: current)
+                }
+                continue
+            }
             // A changed interval takes effect now, not after the stale fire date.
             if nextFire[reminder.id] == nil || previousIntervals[reminder.id] != reminder.interval {
                 nextFire[reminder.id] = current.addingTimeInterval(reminder.interval)
@@ -141,8 +158,24 @@ final class ReminderScheduler {
     func seed(reference: Date) {
         nextFire = [:]
         for reminder in reminders where reminder.isEnabled {
-            nextFire[reminder.id] = reference.addingTimeInterval(reminder.interval)
+            if reminder.isOneTime {
+                guard !firedOneTime.contains(reminder.id) else { continue }
+                nextFire[reminder.id] = oneTimeSchedule(for: reminder, from: reference)
+            } else {
+                nextFire[reminder.id] = reference.addingTimeInterval(reminder.interval)
+            }
         }
+    }
+
+    /// How long past its moment a one-time reminder is still worth showing.
+    /// "Meeting at 3" relaunched at 3:05 should appear; days later it should not.
+    static let oneTimeGrace: TimeInterval = 3600
+
+    private func oneTimeSchedule(for reminder: Reminder, from reference: Date) -> Date? {
+        guard let fireAt = reminder.fireAt,
+              fireAt.timeIntervalSince(reference) > -Self.oneTimeGrace
+        else { return nil }
+        return fireAt
     }
 
     /// Deliver each due reminder when the moment is good, otherwise hold it (or
@@ -162,7 +195,14 @@ final class ReminderScheduler {
                     ?? current.addingTimeInterval(reminder.interval)
                 continue
             }
-            nextFire[reminder.id] = Self.nextOccurrence(after: current, anchor: due, interval: reminder.interval)
+            if reminder.isOneTime {
+                // Spent on firing, whether it is delivered, held, or silenced;
+                // only a snooze or a new date brings it back.
+                nextFire[reminder.id] = nil
+                firedOneTime.insert(reminder.id)
+            } else {
+                nextFire[reminder.id] = Self.nextOccurrence(after: current, anchor: due, interval: reminder.interval)
+            }
             guard !silenced else { continue }
             if deliverOrHold(reminder, due: due, at: current) {
                 delivered.append(reminder)
