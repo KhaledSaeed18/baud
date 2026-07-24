@@ -2,7 +2,7 @@ import Testing
 import Foundation
 @testable import Baud
 
-struct QuietHoursTests {
+struct DailyWindowTests {
     private let calendar = Calendar.current
 
     private func date(hour: Int, minute: Int = 0) -> Date {
@@ -10,14 +10,14 @@ struct QuietHoursTests {
     }
 
     @Test func sameDayWindowCoversItsHours() {
-        let quiet = QuietHours(startMinutes: 13 * 60, endMinutes: 14 * 60)
+        let quiet = DailyWindow(startMinutes: 13 * 60, endMinutes: 14 * 60)
         #expect(quiet.contains(date(hour: 13, minute: 30)))
         #expect(!quiet.contains(date(hour: 12, minute: 59)))
         #expect(!quiet.contains(date(hour: 14)))
     }
 
     @Test func midnightWrapCoversEveningAndMorning() {
-        let quiet = QuietHours(startMinutes: 21 * 60, endMinutes: 8 * 60)
+        let quiet = DailyWindow(startMinutes: 21 * 60, endMinutes: 8 * 60)
         #expect(quiet.contains(date(hour: 23)))
         #expect(quiet.contains(date(hour: 3)))
         #expect(quiet.contains(date(hour: 7, minute: 59)))
@@ -27,13 +27,13 @@ struct QuietHoursTests {
     }
 
     @Test func equalEndsAreAnEmptyWindow() {
-        let quiet = QuietHours(startMinutes: 9 * 60, endMinutes: 9 * 60)
+        let quiet = DailyWindow(startMinutes: 9 * 60, endMinutes: 9 * 60)
         #expect(!quiet.contains(date(hour: 9)))
         #expect(!quiet.contains(date(hour: 15)))
     }
 
     @Test func windowEndIsNilOutsideAndSetInside() {
-        let quiet = QuietHours(startMinutes: 21 * 60, endMinutes: 8 * 60)
+        let quiet = DailyWindow(startMinutes: 21 * 60, endMinutes: 8 * 60)
         #expect(quiet.currentWindowEnd(from: date(hour: 12)) == nil)
         if let end = quiet.currentWindowEnd(from: date(hour: 23)) {
             let components = calendar.dateComponents([.hour, .minute], from: end)

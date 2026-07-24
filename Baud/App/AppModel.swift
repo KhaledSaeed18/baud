@@ -157,12 +157,12 @@ final class AppModel {
     static let defaultQuietStartMinutes = 21 * 60
     static let defaultQuietEndMinutes = 8 * 60
 
-    private static func quietHours() -> QuietHours? {
+    private static func quietHours() -> DailyWindow? {
         let defaults = UserDefaults.standard
         guard defaults.bool(forKey: quietHoursEnabledKey) else { return nil }
         let start = defaults.object(forKey: quietStartMinutesKey) as? Int ?? defaultQuietStartMinutes
         let end = defaults.object(forKey: quietEndMinutesKey) as? Int ?? defaultQuietEndMinutes
-        return QuietHours(startMinutes: start, endMinutes: end)
+        return DailyWindow(startMinutes: start, endMinutes: end)
     }
 
     private static func isQuietHour(_ date: Date) -> Bool {
