@@ -49,6 +49,7 @@ private struct ReminderRow: View {
     let reminder: Reminder
     let model: AppModel
     let onEdit: () -> Void
+    @AppStorage(AppModel.cooldownSecondsKey) private var cooldownSeconds = AppModel.defaultCooldownSeconds
 
     var body: some View {
         HStack {
@@ -74,7 +75,11 @@ private struct ReminderRow: View {
     // not read as "Every 120 min" and a short one does not round to "Every 0 min".
     private var intervalText: String {
         let split = IntervalUnit.split(reminder.interval)
-        return "Every \(split.value) \(split.unit.short)"
+        let base = "Every \(split.value) \(split.unit.short)"
+        // An interval under the gap is not an error: the reminder is held and
+        // paced by the gap instead. Say so quietly rather than warn.
+        guard reminder.interval < TimeInterval(cooldownSeconds) else { return base }
+        return "\(base), paced by the \(IntervalUnit.shortLabel(seconds: cooldownSeconds)) gap"
     }
 }
 
@@ -86,6 +91,7 @@ private struct ReminderDetailView: View {
     @State private var snoozeMinutes: Int?
     private let onSave: (Reminder) -> Void
     private let onDelete: (() -> Void)?
+    @AppStorage(AppModel.cooldownSecondsKey) private var cooldownSeconds = AppModel.defaultCooldownSeconds
 
     private static let minutePresets = [15, 20, 30, 45, 60]
     private static let snoozePresets = [5, 10, 15, 30]
@@ -148,6 +154,11 @@ private struct ReminderDetailView: View {
                             .pickerStyle(.menu)
                             .fixedSize()
                         }
+                    }
+                    if intervalSeconds < TimeInterval(cooldownSeconds) {
+                        Text("Shorter than the \(IntervalUnit.shortLabel(seconds: cooldownSeconds)) gap between reminders. It appears about that often instead, and nothing is dropped.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
                     }
                 }
 
@@ -255,6 +266,12 @@ private enum IntervalUnit: CaseIterable, Identifiable {
         case .minutes: return 5
         case .hours: return 1
         }
+    }
+
+    /// A compact "2 min" style label for a whole number of seconds.
+    static func shortLabel(seconds: Int) -> String {
+        let split = split(TimeInterval(seconds))
+        return "\(split.value) \(split.unit.short)"
     }
 
     // Read a stored interval back as the largest unit that divides it evenly, so
