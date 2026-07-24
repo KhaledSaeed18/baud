@@ -12,18 +12,24 @@ struct SystemSuppressionGate: SuppressionGate {
     private let idleThreshold: () -> TimeInterval
     private let holdsOverFullScreen: () -> Bool
     private let holdsDuringCapture: () -> Bool
+    // Off by default, unlike the other holds: it needs calendar access, which
+    // is the user's to grant, so it stays quiet until asked for.
+    private let holdsDuringCalendarEvents: () -> Bool
 
     private let idle = IdleMonitor()
     private let capture = CaptureMonitor()
+    private let calendar = CalendarMonitor()
 
     init(
         idleThreshold: @escaping () -> TimeInterval = { 120 },
         holdsOverFullScreen: @escaping () -> Bool = { true },
-        holdsDuringCapture: @escaping () -> Bool = { true }
+        holdsDuringCapture: @escaping () -> Bool = { true },
+        holdsDuringCalendarEvents: @escaping () -> Bool = { false }
     ) {
         self.idleThreshold = idleThreshold
         self.holdsOverFullScreen = holdsOverFullScreen
         self.holdsDuringCapture = holdsDuringCapture
+        self.holdsDuringCalendarEvents = holdsDuringCalendarEvents
     }
 
     func currentReason() -> SuppressionReason? {
@@ -31,6 +37,7 @@ struct SystemSuppressionGate: SuppressionGate {
         if holdsDuringCapture(), capture.isMicrophoneActive() || capture.isCameraActive() {
             return .cameraOrMicrophoneInUse
         }
+        if holdsDuringCalendarEvents(), calendar.isEventInProgress() { return .calendarEvent }
         if holdsOverFullScreen(), isFrontmostFullScreen() { return .fullScreen }
         if idle.secondsSinceInput() >= idleThreshold() { return .idle }
         return nil

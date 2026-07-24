@@ -7,6 +7,7 @@ enum SuppressionReason: Equatable {
     case cameraOrMicrophoneInUse
     case screenLocked
     case idle
+    case calendarEvent
     case doNotDisturb
     case screenShared
 }
