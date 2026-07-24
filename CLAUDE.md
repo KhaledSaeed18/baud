@@ -141,6 +141,9 @@ the mouse, inset from `visibleFrame` so it clears the Dock and the menu bar.
   `DailyWindow`, pure and tested; the scheduler takes it as a `(Date) -> Bool` provider.
 - A reminder may carry its own active hours, a `DailyWindow` like lunch for a snack reminder. Due
   outside the window, it is deferred to the next window start, not skipped and not held.
+- A one-time reminder (`fireAt` set) fires once and is spent: delivered, held, or silenced, it does
+  not reschedule. A snooze or a new date brings it back once; after it is seen, the app model
+  disables it. On launch, one missed by less than an hour still fires; older ones stay quiet.
 - Returning from a real break (away past the same "away for" threshold the idle hold uses) restarts
   every interval from the return and drops stale held reminders. The break already was the pause; a
   walk must not end with "Move". Best effort: an away period is noticed when a tick lands inside it,
@@ -285,6 +288,7 @@ the built-ins. It is a supported public interface: the schema is stable.
 | `isBuiltIn` | boolean | True for the shipped reminders; those cannot be deleted.  |
 | `snoozeInterval` | number | Optional. Seconds a snooze postpones this reminder; omitted means the app-wide snooze length applies. |
 | `activeHours` | object | Optional. `{"startMinutes": 720, "endMinutes": 840}`, minutes after midnight; the window may wrap midnight. Due outside it, the reminder waits for the next window start. Omitted means the whole day. |
+| `fireAt` | string | Optional. ISO 8601 date. Set, the reminder fires once at that moment and then disables itself, and `interval` is ignored. Omitted means it repeats. |
 
 Edit with the app quit: saving from the editor while Baud runs overwrites hand edits. An unreadable
 or malformed file falls back to the built-ins in memory only, never overwriting the file, rather than

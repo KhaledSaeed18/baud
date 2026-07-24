@@ -50,6 +50,8 @@ The built-in reminders, each with its own character mood:
 On top of the built-ins:
 
 - **Custom reminders**: any label, any message, any mood, any interval, added from Settings.
+- **One-time reminders**: "call Tom at 3" fires once at its moment and then turns itself off.
+  Snooze it and it comes back once more.
 - **One-click presets**: Recommended, Desk day, Short bursts, More water, or Rest my eyes retune
   the built-ins in one go. Your own reminders are never touched, and anything can be changed after.
 - **Suppression**: a call (camera or microphone in use), a full screen window, a locked screen, or
@@ -146,6 +148,7 @@ hand edits). The format is a supported interface:
 | `isBuiltIn` | boolean | True for the shipped reminders; those cannot be deleted. |
 | `snoozeInterval` | number | Optional. Seconds a snooze postpones this reminder; omitted means the app-wide snooze length applies. |
 | `activeHours` | object | Optional. `{"startMinutes": 720, "endMinutes": 840}`, minutes after midnight. Due outside the window, the reminder waits for the next window start. Omitted means the whole day. |
+| `fireAt` | string | Optional. ISO 8601 date. Fires once at that moment, then disables itself. Omitted means it repeats. |
 
 An unreadable or malformed file falls back to the built-ins rather than leaving you with nothing,
 and the file itself is left untouched for you to fix.
