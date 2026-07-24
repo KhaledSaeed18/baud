@@ -22,6 +22,13 @@ struct ReminderEditorView: View {
                     editing = EditingReminder(reminder: model.newCustomReminder(), isNew: true)
                 }
                 Spacer()
+                Menu("Presets") {
+                    ForEach(Preset.all) { preset in
+                        Button(preset.name) { model.apply(preset) }
+                    }
+                }
+                .fixedSize()
+                .help("A starting point for the built-in reminders. Your own reminders are not touched.")
             }
             .padding(8)
         }

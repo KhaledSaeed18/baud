@@ -241,6 +241,13 @@ final class AppModel {
         Reminder(label: "New reminder", message: "Reminder.", interval: 30 * 60, mood: .custom)
     }
 
+    /// Apply a one-click preset to the built-ins. Custom reminders and the
+    /// existing schedule handling (interval changes reschedule) do the rest.
+    func apply(_ preset: Preset) {
+        reminders = preset.applied(to: reminders)
+        persist()
+    }
+
     func add(_ reminder: Reminder) {
         reminders.append(reminder)
         persist()
