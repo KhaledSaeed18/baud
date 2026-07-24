@@ -137,9 +137,9 @@ private struct TimingSettingsView: View {
 
             Section {
                 Toggle("Quiet hours", isOn: $quietHoursEnabled)
-                DatePicker("From", selection: timeBinding($quietStartMinutes), displayedComponents: .hourAndMinute)
+                DatePicker("From", selection: TimeOfDay.binding($quietStartMinutes), displayedComponents: .hourAndMinute)
                     .disabled(!quietHoursEnabled)
-                DatePicker("Until", selection: timeBinding($quietEndMinutes), displayedComponents: .hourAndMinute)
+                DatePicker("Until", selection: TimeOfDay.binding($quietEndMinutes), displayedComponents: .hourAndMinute)
                     .disabled(!quietHoursEnabled)
             } footer: {
                 Text(quietHoursEnabled
@@ -150,20 +150,6 @@ private struct TimingSettingsView: View {
         .formStyle(.grouped)
     }
 
-    /// Bridges a minutes-after-midnight setting to the Date a DatePicker wants.
-    /// Only the time components survive the round trip; the day is irrelevant.
-    private func timeBinding(_ minutes: Binding<Int>) -> Binding<Date> {
-        Binding<Date>(
-            get: {
-                let start = Calendar.current.startOfDay(for: Date())
-                return start.addingTimeInterval(TimeInterval(minutes.wrappedValue * 60))
-            },
-            set: { date in
-                let components = Calendar.current.dateComponents([.hour, .minute], from: date)
-                minutes.wrappedValue = (components.hour ?? 0) * 60 + (components.minute ?? 0)
-            }
-        )
-    }
 
     private func minutesLabel(_ minutes: Int) -> String {
         minutes == 1 ? "1 minute" : "\(minutes) minutes"

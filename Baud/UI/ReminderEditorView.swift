@@ -75,7 +75,10 @@ private struct ReminderRow: View {
     // not read as "Every 120 min" and a short one does not round to "Every 0 min".
     private var intervalText: String {
         let split = IntervalUnit.split(reminder.interval)
-        let base = "Every \(split.value) \(split.unit.short)"
+        var base = "Every \(split.value) \(split.unit.short)"
+        if let window = reminder.activeHours {
+            base += ", \(TimeOfDay.label(window.startMinutes)) to \(TimeOfDay.label(window.endMinutes))"
+        }
         // An interval under the gap is not an error: the reminder is held and
         // paced by the gap instead. Say so quietly rather than warn.
         guard reminder.interval < TimeInterval(cooldownSeconds) else { return base }
@@ -89,6 +92,9 @@ private struct ReminderDetailView: View {
     @State private var value: Int
     @State private var unit: IntervalUnit
     @State private var snoozeMinutes: Int?
+    @State private var hasActiveHours: Bool
+    @State private var activeStartMinutes: Int
+    @State private var activeEndMinutes: Int
     private let onSave: (Reminder) -> Void
     private let onDelete: (() -> Void)?
     @AppStorage(AppModel.cooldownSecondsKey) private var cooldownSeconds = AppModel.defaultCooldownSeconds
@@ -111,6 +117,9 @@ private struct ReminderDetailView: View {
         _value = State(initialValue: split.value)
         _unit = State(initialValue: split.unit)
         _snoozeMinutes = State(initialValue: reminder.snoozeInterval.map { Int($0 / 60) })
+        _hasActiveHours = State(initialValue: reminder.activeHours != nil)
+        _activeStartMinutes = State(initialValue: reminder.activeHours?.startMinutes ?? 9 * 60)
+        _activeEndMinutes = State(initialValue: reminder.activeHours?.endMinutes ?? 17 * 60)
         self.onSave = onSave
         self.onDelete = onDelete
     }
@@ -162,6 +171,19 @@ private struct ReminderDetailView: View {
                     }
                 }
 
+                Section("Active hours") {
+                    Toggle("Only during part of the day", isOn: $hasActiveHours)
+                    DatePicker("From", selection: TimeOfDay.binding($activeStartMinutes), displayedComponents: .hourAndMinute)
+                        .disabled(!hasActiveHours)
+                    DatePicker("Until", selection: TimeOfDay.binding($activeEndMinutes), displayedComponents: .hourAndMinute)
+                        .disabled(!hasActiveHours)
+                    if hasActiveHours {
+                        Text("Due outside these hours, it waits for the window to open.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+
                 Section("Snooze") {
                     Picker("Length", selection: $snoozeMinutes) {
                         Text("App setting").tag(Int?.none)
@@ -192,6 +214,11 @@ private struct ReminderDetailView: View {
                 Button("Save") {
                     draft.interval = intervalSeconds
                     draft.snoozeInterval = snoozeMinutes.map { TimeInterval($0 * 60) }
+                    // Equal ends would be an empty window, a reminder that can
+                    // never appear; treat it as no restriction instead.
+                    draft.activeHours = hasActiveHours && activeStartMinutes != activeEndMinutes
+                        ? DailyWindow(startMinutes: activeStartMinutes, endMinutes: activeEndMinutes)
+                        : nil
                     onSave(draft)
                     dismiss()
                 }
