@@ -23,7 +23,9 @@ final class ReminderScheduler {
     @ObservationIgnored private let now: () -> Date
     @ObservationIgnored private let deliver: (Reminder) -> Void
     @ObservationIgnored private let gate: SuppressionGate
-    @ObservationIgnored private let cooldown: TimeInterval
+    // A provider, like the gate's idle threshold, so a settings change applies
+    // on the next delivery check without restarting the scheduler.
+    @ObservationIgnored private let cooldown: () -> TimeInterval
     @ObservationIgnored private let recheckInterval: TimeInterval
     @ObservationIgnored private var lastDelivery: Date?
     @ObservationIgnored private var wait: Task<Void, Never>?
@@ -31,7 +33,7 @@ final class ReminderScheduler {
     init(
         reminders: [Reminder],
         gate: SuppressionGate? = nil,
-        cooldown: TimeInterval = 120,
+        cooldown: @escaping () -> TimeInterval = { 120 },
         recheckInterval: TimeInterval = 30,
         now: @escaping () -> Date = Date.init,
         deliver: @escaping (Reminder) -> Void
@@ -186,7 +188,7 @@ final class ReminderScheduler {
 
     private func cooldownElapsed(at current: Date) -> Bool {
         guard let last = lastDelivery else { return true }
-        return current.timeIntervalSince(last) >= cooldown
+        return current.timeIntervalSince(last) >= cooldown()
     }
 
     private func record(delivery reminder: Reminder, at current: Date) {

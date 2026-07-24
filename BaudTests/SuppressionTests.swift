@@ -56,7 +56,7 @@ struct SuppressionTests {
         let a = reminder()
         let b = reminder()
         var delivered: [UUID] = []
-        let scheduler = ReminderScheduler(reminders: [a, b], gate: gate, cooldown: 100, deliver: { delivered.append($0.id) })
+        let scheduler = ReminderScheduler(reminders: [a, b], gate: gate, cooldown: { 100 }, deliver: { delivered.append($0.id) })
         let t0 = Date(timeIntervalSince1970: 0)
         scheduler.seed(reference: t0)
         _ = scheduler.fireDue(at: t0.addingTimeInterval(60))
@@ -82,7 +82,7 @@ struct SuppressionTests {
         let a = reminder()
         let b = reminder()
         var delivered = 0
-        let scheduler = ReminderScheduler(reminders: [a, b], cooldown: 100, deliver: { _ in delivered += 1 })
+        let scheduler = ReminderScheduler(reminders: [a, b], cooldown: { 100 }, deliver: { _ in delivered += 1 })
         let t0 = Date(timeIntervalSince1970: 0)
         scheduler.seed(reference: t0)
 
