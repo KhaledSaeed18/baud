@@ -61,6 +61,7 @@ private struct TimingSettingsView: View {
     @AppStorage(AppModel.autoDismissSecondsKey) private var autoDismissSeconds = AppModel.defaultAutoDismissSeconds
     @AppStorage(AppModel.idleMinutesKey) private var idleMinutes = AppModel.defaultIdleMinutes
     @AppStorage(AppModel.idleHoldEnabledKey) private var idleHoldEnabled = true
+    @AppStorage(AppModel.fullScreenHoldEnabledKey) private var fullScreenHoldEnabled = true
     @AppStorage(AppModel.cooldownSecondsKey) private var cooldownSeconds = AppModel.defaultCooldownSeconds
 
     private static let snoozeChoices = [5, 10, 15, 30]
@@ -102,6 +103,14 @@ private struct TimingSettingsView: View {
                 Text(idleHoldEnabled
                     ? "After this long with no input, reminders are held and delivered when you return."
                     : "Reminders appear on schedule even when you are away from the Mac.")
+            }
+
+            Section {
+                Toggle("Hold during full screen", isOn: $fullScreenHoldEnabled)
+            } footer: {
+                Text(fullScreenHoldEnabled
+                    ? "A full-screen app, video, or presentation holds reminders until you leave it."
+                    : "Reminders appear over full-screen apps. Calls and the locked screen still hold them.")
             }
 
             Section {

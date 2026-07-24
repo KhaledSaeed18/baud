@@ -25,7 +25,10 @@ final class AppModel {
     func start() {
         let scheduler = ReminderScheduler(
             reminders: reminders,
-            gate: SystemSuppressionGate(idleThreshold: Self.idleThreshold),
+            gate: SystemSuppressionGate(
+                idleThreshold: Self.idleThreshold,
+                holdsOverFullScreen: Self.holdsOverFullScreen
+            ),
             cooldown: Self.cooldown
         ) { [weak self] reminder in
             self?.deliver(reminder)
@@ -101,6 +104,16 @@ final class AppModel {
     /// UserDefaults key for whether being away holds reminders at all. On by
     /// default; a missing value reads as enabled.
     static let idleHoldEnabledKey = "idleHoldEnabled"
+
+    /// UserDefaults key for whether a full-screen frontmost app holds
+    /// reminders. On by default; a missing value reads as enabled.
+    static let fullScreenHoldEnabledKey = "fullScreenHoldEnabled"
+
+    private static func holdsOverFullScreen() -> Bool {
+        let defaults = UserDefaults.standard
+        guard defaults.object(forKey: fullScreenHoldEnabledKey) != nil else { return true }
+        return defaults.bool(forKey: fullScreenHoldEnabledKey)
+    }
 
     private static func idleThreshold() -> TimeInterval {
         let defaults = UserDefaults.standard
