@@ -98,8 +98,18 @@ final class AppModel {
     static let idleMinutesKey = "idleMinutes"
     static let defaultIdleMinutes = 2
 
+    /// UserDefaults key for whether being away holds reminders at all. On by
+    /// default; a missing value reads as enabled.
+    static let idleHoldEnabledKey = "idleHoldEnabled"
+
     private static func idleThreshold() -> TimeInterval {
-        let stored = UserDefaults.standard.integer(forKey: idleMinutesKey)
+        let defaults = UserDefaults.standard
+        // An infinite threshold turns the idle check off without the gate
+        // needing to know the setting exists.
+        if defaults.object(forKey: idleHoldEnabledKey) != nil, !defaults.bool(forKey: idleHoldEnabledKey) {
+            return .infinity
+        }
+        let stored = defaults.integer(forKey: idleMinutesKey)
         return TimeInterval((stored > 0 ? stored : defaultIdleMinutes) * 60)
     }
 
