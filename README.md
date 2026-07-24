@@ -55,8 +55,11 @@ On top of the built-ins:
   flush after a meeting.
 - **Pause**: silence Baud for thirty minutes, an hour, three hours, or until you resume, from the
   menu bar without quitting.
-- **Snooze without nagging**: click the character to dismiss, or snooze for ten minutes. Ignore it
-  and it dismisses itself.
+- **Snooze without nagging**: click the character to dismiss, or snooze it. The snooze length is
+  yours to set, app-wide or per reminder. Ignore it and it dismisses itself.
+- **Timing that fits you**: the snooze length, how long the character waits before leaving, the
+  away threshold, and the gap between two appearances are all settings. The call, full-screen, and
+  away holds can each be turned off; holding stays the default.
 - **Launch at login**, through `SMAppService`.
 
 ## How it works
@@ -91,14 +94,14 @@ Baud lives in the menu bar and has no Dock icon. Look for its mark in the menu b
 
 ### Menu bar
 
-Click the menu bar mark to see the next reminder, pause for a while, show a reminder now, open
-Settings, or quit.
+Click the menu bar mark to see the next reminder, pause for a while, open Settings, or quit. While
+Baud is staying quiet on purpose, the menu says which reminder it is holding.
 
 ### When a reminder appears
 
 The character slides in from the corner and says one short thing. Click it to dismiss, or use the
-snooze control to be reminded again in ten minutes. Ignore it and it leaves on its own. None of the
-three outcomes is a failure, and none is tracked as one.
+snooze control to be reminded again later (ten minutes unless you change it). Ignore it and it
+leaves on its own. None of the three outcomes is a failure, and none is tracked as one.
 
 ### Custom reminders
 
@@ -107,10 +110,14 @@ label, message, mood, and interval.
 
 ## Configuration
 
-Settings has three tabs:
+Settings has four tabs:
 
-- **General**: launch at login.
-- **Reminders**: enable, disable, add, edit, and delete reminders.
+- **General**: launch at login and a character preview.
+- **Timing**: the snooze length, how long the character waits before leaving on its own, when being
+  away holds reminders (and whether it does), whether full screen and calls hold them, and the
+  smallest gap between two appearances.
+- **Reminders**: enable, disable, add, edit, and delete reminders. Each reminder can carry its own
+  snooze length or use the app-wide one.
 - **About**: version and a link to the source.
 
 Reminders are stored as a JSON array at `~/Library/Application Support/Baud/reminders.json`, seeded
@@ -126,8 +133,10 @@ hand edits). The format is a supported interface:
 | `mood`      | string  | One of `move`, `water`, `eyes`, `posture`, `custom`.     |
 | `isEnabled` | boolean | Whether the reminder is scheduled.                       |
 | `isBuiltIn` | boolean | True for the shipped reminders; those cannot be deleted. |
+| `snoozeInterval` | number | Optional. Seconds a snooze postpones this reminder; omitted means the app-wide snooze length applies. |
 
-An unreadable or malformed file falls back to the built-ins rather than leaving you with nothing.
+An unreadable or malformed file falls back to the built-ins rather than leaving you with nothing,
+and the file itself is left untouched for you to fix.
 
 ## Architecture
 
