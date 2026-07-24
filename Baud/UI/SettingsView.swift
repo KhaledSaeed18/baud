@@ -25,6 +25,7 @@ private struct GeneralSettingsView: View {
     let model: AppModel
     @State private var launchAtLogin: Bool
     @AppStorage(AppModel.soundEnabledKey) private var soundEnabled = false
+    @AppStorage(AppModel.quickAddHotKeyEnabledKey) private var quickAddHotKeyEnabled = true
 
     init(model: AppModel) {
         self.model = model
@@ -40,6 +41,17 @@ private struct GeneralSettingsView: View {
                     }
             } footer: {
                 Text("Baud starts with your Mac and waits in the menu bar. It has no Dock icon.")
+            }
+
+            Section {
+                Toggle("Quick add from anywhere", isOn: $quickAddHotKeyEnabled)
+                    .onChange(of: quickAddHotKeyEnabled) { _, isOn in
+                        model.setQuickAddHotKey(enabled: isOn)
+                    }
+            } footer: {
+                Text(quickAddHotKeyEnabled
+                    ? "Command Shift B opens a one-line field in any app: water every 45 minutes, call Tom at 3pm."
+                    : "Quick add stays available from the menu bar.")
             }
 
             Section {

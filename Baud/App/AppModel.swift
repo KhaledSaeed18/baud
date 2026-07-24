@@ -40,6 +40,7 @@ final class AppModel {
         }
         scheduler.start()
         self.scheduler = scheduler
+        startQuickAddHotKeyIfEnabled()
     }
 
     func handleWake() {
@@ -126,20 +127,20 @@ final class AppModel {
     /// reminders. On by default; a missing value reads as enabled.
     static let captureHoldEnabledKey = "captureHoldEnabled"
 
-    /// Reads a hold toggle that defaults to on: a missing value is enabled,
-    /// unlike UserDefaults' plain bool(forKey:).
-    private static func holdEnabled(_ key: String) -> Bool {
+    /// Reads a toggle that defaults to on: a missing value is enabled, unlike
+    /// UserDefaults' plain bool(forKey:).
+    private static func onByDefault(_ key: String) -> Bool {
         let defaults = UserDefaults.standard
         guard defaults.object(forKey: key) != nil else { return true }
         return defaults.bool(forKey: key)
     }
 
     private static func holdsOverFullScreen() -> Bool {
-        holdEnabled(fullScreenHoldEnabledKey)
+        onByDefault(fullScreenHoldEnabledKey)
     }
 
     private static func holdsDuringCapture() -> Bool {
-        holdEnabled(captureHoldEnabledKey)
+        onByDefault(captureHoldEnabledKey)
     }
 
     /// UserDefaults key for whether a calendar event in progress holds
@@ -161,7 +162,7 @@ final class AppModel {
     private static func idleThreshold() -> TimeInterval {
         // An infinite threshold turns the idle check off without the gate
         // needing to know the setting exists.
-        guard holdEnabled(idleHoldEnabledKey) else { return .infinity }
+        guard onByDefault(idleHoldEnabledKey) else { return .infinity }
         let stored = UserDefaults.standard.integer(forKey: idleMinutesKey)
         return TimeInterval((stored > 0 ? stored : defaultIdleMinutes) * 60)
     }
@@ -174,7 +175,7 @@ final class AppModel {
     /// the idle hold uses, so away means one thing everywhere. Nil turns the
     /// reset off.
     private static func awayResetThreshold() -> TimeInterval? {
-        guard holdEnabled(awayResetEnabledKey) else { return nil }
+        guard onByDefault(awayResetEnabledKey) else { return nil }
         let stored = UserDefaults.standard.integer(forKey: idleMinutesKey)
         return TimeInterval((stored > 0 ? stored : defaultIdleMinutes) * 60)
     }
@@ -263,6 +264,26 @@ final class AppModel {
     }
 
     @ObservationIgnored private lazy var quickAddPanel = QuickAddPanelController()
+    @ObservationIgnored private lazy var quickAddHotKey = QuickAddHotKey { [weak self] in
+        self?.showQuickAdd()
+    }
+
+    /// UserDefaults key for the system-wide quick add shortcut (command shift
+    /// B). On by default; a missing value reads as enabled.
+    static let quickAddHotKeyEnabledKey = "quickAddHotKeyEnabled"
+
+    func startQuickAddHotKeyIfEnabled() {
+        guard Self.onByDefault(Self.quickAddHotKeyEnabledKey) else { return }
+        quickAddHotKey.register()
+    }
+
+    func setQuickAddHotKey(enabled: Bool) {
+        if enabled {
+            quickAddHotKey.register()
+        } else {
+            quickAddHotKey.unregister()
+        }
+    }
 
     func showQuickAdd() {
         quickAddPanel.show(model: self)

@@ -13,6 +13,7 @@ struct MenuBarView: View {
         pauseControls
         Divider()
         Button("Quick add\u{2026}") { model.showQuickAdd() }
+            .keyboardShortcut("b", modifiers: [.command, .shift])
         Button("Settings\u{2026}") {
             NSApp.activate()
             openSettings()
