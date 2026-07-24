@@ -62,6 +62,7 @@ private struct TimingSettingsView: View {
     @AppStorage(AppModel.autoDismissSecondsKey) private var autoDismissSeconds = AppModel.defaultAutoDismissSeconds
     @AppStorage(AppModel.idleMinutesKey) private var idleMinutes = AppModel.defaultIdleMinutes
     @AppStorage(AppModel.idleHoldEnabledKey) private var idleHoldEnabled = true
+    @AppStorage(AppModel.awayResetEnabledKey) private var awayResetEnabled = true
     @AppStorage(AppModel.fullScreenHoldEnabledKey) private var fullScreenHoldEnabled = true
     @AppStorage(AppModel.captureHoldEnabledKey) private var captureHoldEnabled = true
     @AppStorage(AppModel.cooldownSecondsKey) private var cooldownSeconds = AppModel.defaultCooldownSeconds
@@ -105,10 +106,9 @@ private struct TimingSettingsView: View {
                     }
                 }
                 .disabled(!idleHoldEnabled)
+                Toggle("Start fresh after a break", isOn: $awayResetEnabled)
             } footer: {
-                Text(idleHoldEnabled
-                    ? "After this long with no input, reminders are held and delivered when you return."
-                    : "Reminders appear on schedule even when you are away from the Mac.")
+                Text(awayResetFooter)
             }
 
             Section {
@@ -170,6 +170,17 @@ private struct TimingSettingsView: View {
         .formStyle(.grouped)
     }
 
+
+    private var awayResetFooter: String {
+        var lines: [String] = []
+        lines.append(idleHoldEnabled
+            ? "After this long with no input, reminders are held and delivered when you return."
+            : "Reminders appear on schedule even when you are away from the Mac.")
+        if awayResetEnabled {
+            lines.append("A break longer than that restarts every interval from your return, so nothing fires the moment you sit down.")
+        }
+        return lines.joined(separator: " ")
+    }
 
     private func minutesLabel(_ minutes: Int) -> String {
         minutes == 1 ? "1 minute" : "\(minutes) minutes"

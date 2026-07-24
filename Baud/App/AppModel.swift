@@ -32,7 +32,9 @@ final class AppModel {
                 holdsDuringCalendarEvents: Self.holdsDuringCalendarEvents
             ),
             cooldown: Self.cooldown,
-            quiet: Self.isQuietHour
+            quiet: Self.isQuietHour,
+            idleSeconds: Self.idleSeconds,
+            awayResetThreshold: Self.awayResetThreshold
         ) { [weak self] reminder in
             self?.deliver(reminder)
         }
@@ -154,6 +156,23 @@ final class AppModel {
         guard holdEnabled(idleHoldEnabledKey) else { return .infinity }
         let stored = UserDefaults.standard.integer(forKey: idleMinutesKey)
         return TimeInterval((stored > 0 ? stored : defaultIdleMinutes) * 60)
+    }
+
+    /// UserDefaults key for whether returning from a real break restarts every
+    /// interval. On by default; the break already was the pause.
+    static let awayResetEnabledKey = "awayResetEnabled"
+
+    /// The away length that counts as a real break: the same "away for" value
+    /// the idle hold uses, so away means one thing everywhere. Nil turns the
+    /// reset off.
+    private static func awayResetThreshold() -> TimeInterval? {
+        guard holdEnabled(awayResetEnabledKey) else { return nil }
+        let stored = UserDefaults.standard.integer(forKey: idleMinutesKey)
+        return TimeInterval((stored > 0 ? stored : defaultIdleMinutes) * 60)
+    }
+
+    private static func idleSeconds() -> TimeInterval {
+        IdleMonitor().secondsSinceInput()
     }
 
     /// UserDefaults key for the minimum gap between two appearances, in
