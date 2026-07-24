@@ -10,7 +10,7 @@ struct SettingsView: View {
         TabView {
             GeneralSettingsView(model: model)
                 .tabItem { Label("General", systemImage: "gearshape") }
-            TimingSettingsView()
+            TimingSettingsView(model: model)
                 .tabItem { Label("Timing", systemImage: "clock") }
             ReminderEditorView(model: model)
                 .tabItem { Label("Reminders", systemImage: "bell") }
@@ -57,6 +57,7 @@ private struct GeneralSettingsView: View {
 /// hold, and the gap between appearances. Reads and writes UserDefaults; the
 /// scheduler and presenter pick changes up on their next check.
 private struct TimingSettingsView: View {
+    let model: AppModel
     @AppStorage(AppModel.snoozeMinutesKey) private var snoozeMinutes = AppModel.defaultSnoozeMinutes
     @AppStorage(AppModel.autoDismissSecondsKey) private var autoDismissSeconds = AppModel.defaultAutoDismissSeconds
     @AppStorage(AppModel.idleMinutesKey) private var idleMinutes = AppModel.defaultIdleMinutes
@@ -65,6 +66,7 @@ private struct TimingSettingsView: View {
     @AppStorage(AppModel.captureHoldEnabledKey) private var captureHoldEnabled = true
     @AppStorage(AppModel.cooldownSecondsKey) private var cooldownSeconds = AppModel.defaultCooldownSeconds
     @AppStorage(AppModel.quietHoursEnabledKey) private var quietHoursEnabled = false
+    @AppStorage(AppModel.calendarHoldEnabledKey) private var calendarHoldEnabled = false
     @AppStorage(AppModel.quietStartMinutesKey) private var quietStartMinutes = AppModel.defaultQuietStartMinutes
     @AppStorage(AppModel.quietEndMinutesKey) private var quietEndMinutes = AppModel.defaultQuietEndMinutes
 
@@ -133,6 +135,24 @@ private struct TimingSettingsView: View {
                 }
             } footer: {
                 Text("The least time between two appearances. Reminders due sooner wait their turn.")
+            }
+
+            Section {
+                Toggle("Hold during calendar events", isOn: $calendarHoldEnabled)
+                    .onChange(of: calendarHoldEnabled) { _, isOn in
+                        guard isOn else { return }
+                        // The hold is useless without read access, so a denial
+                        // turns the toggle back off rather than pretending.
+                        Task {
+                            if await !model.requestCalendarAccess() {
+                                calendarHoldEnabled = false
+                            }
+                        }
+                    }
+            } footer: {
+                Text(calendarHoldEnabled
+                    ? "While an event is on, reminders are held and delivered after. The calendar is read on this Mac only."
+                    : "Baud can stay quiet while a calendar event is on. Turning this on asks for read access to your calendar.")
             }
 
             Section {

@@ -28,7 +28,8 @@ final class AppModel {
             gate: SystemSuppressionGate(
                 idleThreshold: Self.idleThreshold,
                 holdsOverFullScreen: Self.holdsOverFullScreen,
-                holdsDuringCapture: Self.holdsDuringCapture
+                holdsDuringCapture: Self.holdsDuringCapture,
+                holdsDuringCalendarEvents: Self.holdsDuringCalendarEvents
             ),
             cooldown: Self.cooldown,
             quiet: Self.isQuietHour
@@ -129,6 +130,22 @@ final class AppModel {
 
     private static func holdsDuringCapture() -> Bool {
         holdEnabled(captureHoldEnabledKey)
+    }
+
+    /// UserDefaults key for whether a calendar event in progress holds
+    /// reminders. Off by default: it needs calendar access the user grants.
+    static let calendarHoldEnabledKey = "calendarHoldEnabled"
+
+    private static func holdsDuringCalendarEvents() -> Bool {
+        UserDefaults.standard.bool(forKey: calendarHoldEnabledKey)
+    }
+
+    @ObservationIgnored private let calendarAccess = CalendarMonitor()
+
+    /// Asks for calendar access when the hold is turned on. Returns whether
+    /// access is granted, so the toggle can fall back off after a denial.
+    func requestCalendarAccess() async -> Bool {
+        await calendarAccess.requestAccess()
     }
 
     private static func idleThreshold() -> TimeInterval {
