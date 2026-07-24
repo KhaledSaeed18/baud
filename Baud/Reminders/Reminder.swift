@@ -16,6 +16,11 @@ struct Reminder: Identifiable, Codable, Equatable {
     /// length applies. Optional so files written before the field decode as is.
     var snoozeInterval: TimeInterval?
 
+    /// The part of the day this reminder lives in, like lunch for a snack
+    /// reminder. Due outside the window, it waits for the next window start.
+    /// Nil means the whole day.
+    var activeHours: DailyWindow?
+
     init(
         id: UUID = UUID(),
         label: String,
@@ -24,7 +29,8 @@ struct Reminder: Identifiable, Codable, Equatable {
         mood: CharacterMood,
         isEnabled: Bool = true,
         isBuiltIn: Bool = false,
-        snoozeInterval: TimeInterval? = nil
+        snoozeInterval: TimeInterval? = nil,
+        activeHours: DailyWindow? = nil
     ) {
         self.id = id
         self.label = label
@@ -34,5 +40,6 @@ struct Reminder: Identifiable, Codable, Equatable {
         self.isEnabled = isEnabled
         self.isBuiltIn = isBuiltIn
         self.snoozeInterval = snoozeInterval
+        self.activeHours = activeHours
     }
 }

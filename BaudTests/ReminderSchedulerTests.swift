@@ -92,6 +92,42 @@ struct ReminderSchedulerTests {
         #expect(scheduler.nextFire[r.id] == t0.addingTimeInterval(3600))
     }
 
+    @Test func dueOutsideActiveHoursWaitsForTheWindow() {
+        let calendar = Calendar.current
+        // 16:00 today, with a 12:00 to 14:00 window.
+        let afternoon = calendar.date(bySettingHour: 16, minute: 0, second: 0, of: Date()) ?? Date()
+        var r = reminder(interval: 3600)
+        r.activeHours = DailyWindow(startMinutes: 12 * 60, endMinutes: 14 * 60)
+        var delivered = 0
+        let scheduler = ReminderScheduler(reminders: [r], deliver: { _ in delivered += 1 })
+        scheduler.seed(reference: afternoon.addingTimeInterval(-3600))
+
+        scheduler.fireDue(at: afternoon)
+        #expect(delivered == 0)
+        #expect(scheduler.held.isEmpty)
+        if let next = scheduler.nextFire[r.id] {
+            let components = calendar.dateComponents([.hour, .minute], from: next)
+            #expect(components.hour == 12)
+            #expect(components.minute == 0)
+            #expect(next > afternoon)
+        } else {
+            Issue.record("expected a deferred fire date")
+        }
+    }
+
+    @Test func dueInsideActiveHoursDeliversNormally() {
+        let calendar = Calendar.current
+        let lunch = calendar.date(bySettingHour: 13, minute: 0, second: 0, of: Date()) ?? Date()
+        var r = reminder(interval: 1800)
+        r.activeHours = DailyWindow(startMinutes: 12 * 60, endMinutes: 14 * 60)
+        var delivered = 0
+        let scheduler = ReminderScheduler(reminders: [r], deliver: { _ in delivered += 1 })
+        scheduler.seed(reference: lunch.addingTimeInterval(-1800))
+
+        scheduler.fireDue(at: lunch)
+        #expect(delivered == 1)
+    }
+
     @Test func nextOccurrenceIsStrictlyAfterCurrent() {
         let anchor = Date(timeIntervalSince1970: 0)
         let onBoundary = ReminderScheduler.nextOccurrence(after: anchor.addingTimeInterval(120), anchor: anchor, interval: 60)

@@ -146,6 +146,13 @@ final class ReminderScheduler {
         let silenced = isPaused(at: current) || quiet(current)
         for reminder in reminders where reminder.isEnabled {
             guard let due = nextFire[reminder.id], due <= current else { continue }
+            // Due outside its active hours: wait for the window to open rather
+            // than firing now or losing the day.
+            if let window = reminder.activeHours, !window.contains(current) {
+                nextFire[reminder.id] = window.nextStart(after: current)
+                    ?? current.addingTimeInterval(reminder.interval)
+                continue
+            }
             nextFire[reminder.id] = Self.nextOccurrence(after: current, anchor: due, interval: reminder.interval)
             guard !silenced else { continue }
             if deliverOrHold(reminder, due: due, at: current) {
