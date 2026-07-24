@@ -1,7 +1,8 @@
 import AppKit
 import SwiftUI
 
-/// The settings window: general options, the reminder editor, and an about pane.
+/// The settings window: general options, timing, the reminder editor, and an
+/// about pane.
 struct SettingsView: View {
     let model: AppModel
 
@@ -9,6 +10,8 @@ struct SettingsView: View {
         TabView {
             GeneralSettingsView(model: model)
                 .tabItem { Label("General", systemImage: "gearshape") }
+            TimingSettingsView()
+                .tabItem { Label("Timing", systemImage: "clock") }
             ReminderEditorView(model: model)
                 .tabItem { Label("Reminders", systemImage: "bell") }
             AboutSettingsView()
@@ -27,6 +30,33 @@ private struct GeneralSettingsView: View {
         _launchAtLogin = State(initialValue: model.launchesAtLogin)
     }
 
+    var body: some View {
+        Form {
+            Section {
+                Toggle("Launch at login", isOn: $launchAtLogin)
+                    .onChange(of: launchAtLogin) { _, newValue in
+                        model.setLaunchAtLogin(newValue)
+                    }
+            } footer: {
+                Text("Baud starts with your Mac and waits in the menu bar. It has no Dock icon.")
+            }
+
+            Section {
+                LabeledContent("Character") {
+                    Button("Show a preview") { model.preview() }
+                }
+            } footer: {
+                Text("The character slides in from the corner, delivers one line, and leaves.")
+            }
+        }
+        .formStyle(.grouped)
+    }
+}
+
+/// Every duration the app exposes, in one place: snooze, auto-dismiss, the idle
+/// hold, and the gap between appearances. Reads and writes UserDefaults; the
+/// scheduler and presenter pick changes up on their next check.
+private struct TimingSettingsView: View {
     @AppStorage(AppModel.snoozeMinutesKey) private var snoozeMinutes = AppModel.defaultSnoozeMinutes
     @AppStorage(AppModel.autoDismissSecondsKey) private var autoDismissSeconds = AppModel.defaultAutoDismissSeconds
     @AppStorage(AppModel.idleMinutesKey) private var idleMinutes = AppModel.defaultIdleMinutes
@@ -40,18 +70,9 @@ private struct GeneralSettingsView: View {
     var body: some View {
         Form {
             Section {
-                Toggle("Launch at login", isOn: $launchAtLogin)
-                    .onChange(of: launchAtLogin) { _, newValue in
-                        model.setLaunchAtLogin(newValue)
-                    }
-            } footer: {
-                Text("Baud starts with your Mac and waits in the menu bar. It has no Dock icon.")
-            }
-
-            Section {
                 Picker("Snooze length", selection: $snoozeMinutes) {
                     ForEach(Self.snoozeChoices, id: \.self) { minutes in
-                        Text("\(minutes) minutes").tag(minutes)
+                        Text(minutesLabel(minutes)).tag(minutes)
                     }
                 }
             } footer: {
@@ -71,11 +92,7 @@ private struct GeneralSettingsView: View {
             Section {
                 Picker("Hold when away for", selection: $idleMinutes) {
                     ForEach(Self.idleChoices, id: \.self) { minutes in
-                        if minutes == 1 {
-                            Text("1 minute").tag(minutes)
-                        } else {
-                            Text("\(minutes) minutes").tag(minutes)
-                        }
+                        Text(minutesLabel(minutes)).tag(minutes)
                     }
                 }
             } footer: {
@@ -85,28 +102,22 @@ private struct GeneralSettingsView: View {
             Section {
                 Picker("Gap between reminders", selection: $cooldownSeconds) {
                     ForEach(Self.cooldownChoices, id: \.self) { seconds in
-                        Text(cooldownLabel(seconds)).tag(seconds)
+                        Text(secondsLabel(seconds)).tag(seconds)
                     }
                 }
             } footer: {
                 Text("The least time between two appearances. Reminders due sooner wait their turn.")
             }
-
-            Section {
-                LabeledContent("Character") {
-                    Button("Show a preview") { model.preview() }
-                }
-            } footer: {
-                Text("The character slides in from the corner, delivers one line, and leaves.")
-            }
         }
         .formStyle(.grouped)
     }
 
-    private func cooldownLabel(_ seconds: Int) -> String {
-        if seconds < 60 { return "\(seconds) seconds" }
-        let minutes = seconds / 60
-        return minutes == 1 ? "1 minute" : "\(minutes) minutes"
+    private func minutesLabel(_ minutes: Int) -> String {
+        minutes == 1 ? "1 minute" : "\(minutes) minutes"
+    }
+
+    private func secondsLabel(_ seconds: Int) -> String {
+        seconds < 60 ? "\(seconds) seconds" : minutesLabel(seconds / 60)
     }
 }
 
