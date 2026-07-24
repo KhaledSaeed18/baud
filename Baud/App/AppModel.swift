@@ -30,7 +30,8 @@ final class AppModel {
                 holdsOverFullScreen: Self.holdsOverFullScreen,
                 holdsDuringCapture: Self.holdsDuringCapture
             ),
-            cooldown: Self.cooldown
+            cooldown: Self.cooldown,
+            quiet: Self.isQuietHour
         ) { [weak self] reminder in
             self?.deliver(reminder)
         }
@@ -146,6 +147,31 @@ final class AppModel {
     private static func cooldown() -> TimeInterval {
         let stored = UserDefaults.standard.integer(forKey: cooldownSecondsKey)
         return TimeInterval(stored > 0 ? stored : defaultCooldownSeconds)
+    }
+
+    /// UserDefaults keys for quiet hours: a daily window in which due reminders
+    /// are skipped, like a scheduled pause. Off by default.
+    static let quietHoursEnabledKey = "quietHoursEnabled"
+    static let quietStartMinutesKey = "quietStartMinutes"
+    static let quietEndMinutesKey = "quietEndMinutes"
+    static let defaultQuietStartMinutes = 21 * 60
+    static let defaultQuietEndMinutes = 8 * 60
+
+    private static func quietHours() -> QuietHours? {
+        let defaults = UserDefaults.standard
+        guard defaults.bool(forKey: quietHoursEnabledKey) else { return nil }
+        let start = defaults.object(forKey: quietStartMinutesKey) as? Int ?? defaultQuietStartMinutes
+        let end = defaults.object(forKey: quietEndMinutesKey) as? Int ?? defaultQuietEndMinutes
+        return QuietHours(startMinutes: start, endMinutes: end)
+    }
+
+    private static func isQuietHour(_ date: Date) -> Bool {
+        quietHours()?.contains(date) ?? false
+    }
+
+    /// When the current quiet window ends, for the menu. Nil outside quiet hours.
+    var quietUntil: Date? {
+        Self.quietHours()?.currentWindowEnd(from: Date())
     }
 
     /// Show the first enabled reminder now, without waiting out an interval.

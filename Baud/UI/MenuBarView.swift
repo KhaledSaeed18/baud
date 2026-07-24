@@ -24,6 +24,8 @@ struct MenuBarView: View {
     private var nextReminder: some View {
         if model.isPaused {
             Text(pausedText)
+        } else if let quietUntil = model.quietUntil {
+            Text("Quiet hours until \(quietUntil.formatted(date: .omitted, time: .shortened))")
         } else if let next = model.nextUp() {
             Text("Next: \(next.reminder.label) at \(next.date.formatted(date: .omitted, time: .shortened))")
         } else {

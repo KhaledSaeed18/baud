@@ -64,6 +64,9 @@ private struct TimingSettingsView: View {
     @AppStorage(AppModel.fullScreenHoldEnabledKey) private var fullScreenHoldEnabled = true
     @AppStorage(AppModel.captureHoldEnabledKey) private var captureHoldEnabled = true
     @AppStorage(AppModel.cooldownSecondsKey) private var cooldownSeconds = AppModel.defaultCooldownSeconds
+    @AppStorage(AppModel.quietHoursEnabledKey) private var quietHoursEnabled = false
+    @AppStorage(AppModel.quietStartMinutesKey) private var quietStartMinutes = AppModel.defaultQuietStartMinutes
+    @AppStorage(AppModel.quietEndMinutesKey) private var quietEndMinutes = AppModel.defaultQuietEndMinutes
 
     private static let snoozeChoices = [5, 10, 15, 30]
     private static let autoDismissChoices = [5, 8, 15, 30]
@@ -131,8 +134,35 @@ private struct TimingSettingsView: View {
             } footer: {
                 Text("The least time between two appearances. Reminders due sooner wait their turn.")
             }
+
+            Section {
+                Toggle("Quiet hours", isOn: $quietHoursEnabled)
+                DatePicker("From", selection: timeBinding($quietStartMinutes), displayedComponents: .hourAndMinute)
+                    .disabled(!quietHoursEnabled)
+                DatePicker("Until", selection: timeBinding($quietEndMinutes), displayedComponents: .hourAndMinute)
+                    .disabled(!quietHoursEnabled)
+            } footer: {
+                Text(quietHoursEnabled
+                    ? "Reminders due in this window are skipped, like a pause, so the morning does not start with a backlog."
+                    : "A daily window with no reminders, for evenings and nights.")
+            }
         }
         .formStyle(.grouped)
+    }
+
+    /// Bridges a minutes-after-midnight setting to the Date a DatePicker wants.
+    /// Only the time components survive the round trip; the day is irrelevant.
+    private func timeBinding(_ minutes: Binding<Int>) -> Binding<Date> {
+        Binding<Date>(
+            get: {
+                let start = Calendar.current.startOfDay(for: Date())
+                return start.addingTimeInterval(TimeInterval(minutes.wrappedValue * 60))
+            },
+            set: { date in
+                let components = Calendar.current.dateComponents([.hour, .minute], from: date)
+                minutes.wrappedValue = (components.hour ?? 0) * 60 + (components.minute ?? 0)
+            }
+        )
     }
 
     private func minutesLabel(_ minutes: Int) -> String {
