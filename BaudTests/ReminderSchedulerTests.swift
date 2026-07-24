@@ -128,6 +128,92 @@ struct ReminderSchedulerTests {
         #expect(delivered == 1)
     }
 
+    @Test func returnFromABreakResetsTheSchedule() {
+        let r = reminder(interval: 1800)
+        var idle: TimeInterval = 0
+        var delivered = 0
+        let t0 = Date(timeIntervalSince1970: 0)
+        var current = t0
+        let scheduler = ReminderScheduler(
+            reminders: [r],
+            idleSeconds: { idle },
+            awayResetThreshold: { 300 },
+            now: { current },
+            deliver: { _ in delivered += 1 }
+        )
+        scheduler.seed(reference: t0)
+
+        // Ten minutes away, noticed mid-break.
+        current = t0.addingTimeInterval(600)
+        idle = 600
+        scheduler.noticeActivity(at: current)
+
+        // Back at the desk: every interval restarts from the return.
+        current = t0.addingTimeInterval(660)
+        idle = 5
+        scheduler.noticeActivity(at: current)
+        #expect(scheduler.nextFire[r.id] == current.addingTimeInterval(1800))
+        #expect(delivered == 0)
+    }
+
+    @Test func breakDropsStaleHeldReminders() {
+        let r = reminder(interval: 60)
+        var idle: TimeInterval = 0
+        let t0 = Date(timeIntervalSince1970: 0)
+        var current = t0
+        let gate = StubGate()
+        let scheduler = ReminderScheduler(
+            reminders: [r],
+            gate: gate,
+            idleSeconds: { idle },
+            awayResetThreshold: { 300 },
+            now: { current },
+            deliver: { _ in }
+        )
+        scheduler.seed(reference: t0)
+
+        // Held during a bad moment, then a long break happens.
+        gate.reason = .idle
+        current = t0.addingTimeInterval(60)
+        scheduler.fireDue(at: current)
+        #expect(!scheduler.held.isEmpty)
+
+        current = t0.addingTimeInterval(600)
+        idle = 540
+        scheduler.noticeActivity(at: current)
+
+        // The return clears the stale hold instead of delivering it.
+        gate.reason = nil
+        current = t0.addingTimeInterval(660)
+        idle = 5
+        scheduler.noticeActivity(at: current)
+        #expect(scheduler.held.isEmpty)
+        #expect(scheduler.processHeld(at: current) == nil)
+    }
+
+    @Test func shortAbsenceDoesNotReset() {
+        let r = reminder(interval: 1800)
+        var idle: TimeInterval = 0
+        let t0 = Date(timeIntervalSince1970: 0)
+        var current = t0
+        let scheduler = ReminderScheduler(
+            reminders: [r],
+            idleSeconds: { idle },
+            awayResetThreshold: { 300 },
+            now: { current },
+            deliver: { _ in }
+        )
+        scheduler.seed(reference: t0)
+
+        current = t0.addingTimeInterval(120)
+        idle = 100
+        scheduler.noticeActivity(at: current)
+        current = t0.addingTimeInterval(180)
+        idle = 5
+        scheduler.noticeActivity(at: current)
+        #expect(scheduler.nextFire[r.id] == t0.addingTimeInterval(1800))
+    }
+
     @Test func nextOccurrenceIsStrictlyAfterCurrent() {
         let anchor = Date(timeIntervalSince1970: 0)
         let onBoundary = ReminderScheduler.nextOccurrence(after: anchor.addingTimeInterval(120), anchor: anchor, interval: 60)

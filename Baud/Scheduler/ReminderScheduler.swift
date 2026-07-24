@@ -29,6 +29,11 @@ final class ReminderScheduler {
     // Quiet hours behave like a scheduled pause: due reminders are skipped, not
     // held, so a morning never starts with a backlog.
     @ObservationIgnored private let quiet: (Date) -> Bool
+    // Activity awareness: seconds since the last user input, and the away
+    // length past which a return resets every interval. Nil turns it off.
+    @ObservationIgnored private let idleSeconds: () -> TimeInterval
+    @ObservationIgnored private let awayResetThreshold: () -> TimeInterval?
+    @ObservationIgnored private var awayStart: Date?
     @ObservationIgnored private let recheckInterval: TimeInterval
     @ObservationIgnored private var lastDelivery: Date?
     @ObservationIgnored private var wait: Task<Void, Never>?
@@ -38,6 +43,8 @@ final class ReminderScheduler {
         gate: SuppressionGate? = nil,
         cooldown: @escaping () -> TimeInterval = { 120 },
         quiet: @escaping (Date) -> Bool = { _ in false },
+        idleSeconds: @escaping () -> TimeInterval = { 0 },
+        awayResetThreshold: @escaping () -> TimeInterval? = { nil },
         recheckInterval: TimeInterval = 30,
         now: @escaping () -> Date = Date.init,
         deliver: @escaping (Reminder) -> Void
@@ -46,6 +53,8 @@ final class ReminderScheduler {
         self.gate = gate ?? ClearGate()
         self.cooldown = cooldown
         self.quiet = quiet
+        self.idleSeconds = idleSeconds
+        self.awayResetThreshold = awayResetThreshold
         self.recheckInterval = recheckInterval
         self.now = now
         self.deliver = deliver
@@ -208,11 +217,32 @@ final class ReminderScheduler {
         lastDelivery = current
     }
 
+    /// Tracks away time and resets the schedule on return from a real break.
+    /// The break already was the pause; a walk must not end with "Move", and
+    /// nothing stale from during the break is worth delivering after it.
+    func noticeActivity(at current: Date) {
+        guard let threshold = awayResetThreshold() else {
+            awayStart = nil
+            return
+        }
+        let idle = idleSeconds()
+        if idle >= threshold {
+            let start = current.addingTimeInterval(-idle)
+            awayStart = min(awayStart ?? start, start)
+            return
+        }
+        guard awayStart != nil else { return }
+        awayStart = nil
+        held.removeAll()
+        seed(reference: current)
+    }
+
     private func tick() {
         let current = now()
         if let until = pausedUntil, until != .distantFuture, current >= until {
             pausedUntil = nil
         }
+        noticeActivity(at: current)
         fireDue(at: current)
         processHeld(at: current)
         arm()
@@ -228,7 +258,9 @@ final class ReminderScheduler {
             target = until == .distantFuture ? nil : until
         } else {
             target = nextFire.values.min()
-            if !held.isEmpty {
+            // Recheck soon while anything is held, and while the user is away
+            // so the return that resets the schedule is noticed promptly.
+            if !held.isEmpty || awayStart != nil {
                 let recheck = current.addingTimeInterval(recheckInterval)
                 target = min(target ?? recheck, recheck)
             }
