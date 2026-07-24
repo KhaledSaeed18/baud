@@ -172,6 +172,10 @@ public API (Focus, Do Not Disturb, screen recording) are best effort and not rep
 that catch the cases that matter most still fire. When in doubt, do not interrupt: prefer holding
 over showing.
 
+The capture, full-screen, and idle holds can each be turned off in Settings > Timing; all default to
+on, and the screen-lock hold is not optional. The gate reads these through provider closures handed
+in by the app model, so a change applies on the next check and the gate never learns a settings key.
+
 ## Character
 
 Code-drawn in SwiftUI from geometric primitives, not illustration: it scales with no asset pipeline,
@@ -269,8 +273,28 @@ the built-ins. It is a supported public interface: the schema is stable.
 | `snoozeInterval` | number | Optional. Seconds a snooze postpones this reminder; omitted means the app-wide snooze length applies. |
 
 Edit with the app quit: saving from the editor while Baud runs overwrites hand edits. An unreadable
-or malformed file falls back to the built-ins rather than leaving the user with nothing. An unknown
-`mood` is rejected on load.
+or malformed file falls back to the built-ins in memory only, never overwriting the file, rather than
+leaving the user with nothing. An unknown `mood` is rejected on load.
+
+### App preferences
+
+App-wide preferences live in UserDefaults, not in `reminders.json`: they are app behaviour, not
+reminder data. The keys are defined as statics on `AppModel`; the Settings window writes them with
+`@AppStorage` and the app model reads them at use time (or hands the gate and scheduler provider
+closures), so every change applies without a restart.
+
+| Key                     | Default | Meaning                                                 |
+|-------------------------|---------|---------------------------------------------------------|
+| `snoozeMinutes`         | 10      | App-wide snooze length; a reminder's `snoozeInterval` overrides it. |
+| `autoDismissSeconds`    | 8       | How long the character waits for a click before leaving. |
+| `idleMinutes`           | 2       | Input-free minutes before reminders are held.            |
+| `idleHoldEnabled`       | true    | Whether being away holds reminders at all.               |
+| `fullScreenHoldEnabled` | true    | Whether a full-screen frontmost app holds reminders.     |
+| `captureHoldEnabled`    | true    | Whether an active camera or microphone holds reminders.  |
+| `cooldownSeconds`       | 120     | Minimum gap between two appearances.                     |
+
+A missing hold toggle reads as enabled; holding is always the default. Turning the idle hold off maps
+to an infinite idle threshold, so the gate carries no extra state.
 
 ## Code conventions
 
