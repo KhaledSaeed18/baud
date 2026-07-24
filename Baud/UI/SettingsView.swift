@@ -30,10 +30,12 @@ private struct GeneralSettingsView: View {
     @AppStorage(AppModel.snoozeMinutesKey) private var snoozeMinutes = AppModel.defaultSnoozeMinutes
     @AppStorage(AppModel.autoDismissSecondsKey) private var autoDismissSeconds = AppModel.defaultAutoDismissSeconds
     @AppStorage(AppModel.idleMinutesKey) private var idleMinutes = AppModel.defaultIdleMinutes
+    @AppStorage(AppModel.cooldownSecondsKey) private var cooldownSeconds = AppModel.defaultCooldownSeconds
 
     private static let snoozeChoices = [5, 10, 15, 30]
     private static let autoDismissChoices = [5, 8, 15, 30]
     private static let idleChoices = [1, 2, 5, 10]
+    private static let cooldownChoices = [30, 60, 120, 300]
 
     var body: some View {
         Form {
@@ -81,6 +83,16 @@ private struct GeneralSettingsView: View {
             }
 
             Section {
+                Picker("Gap between reminders", selection: $cooldownSeconds) {
+                    ForEach(Self.cooldownChoices, id: \.self) { seconds in
+                        Text(cooldownLabel(seconds)).tag(seconds)
+                    }
+                }
+            } footer: {
+                Text("The least time between two appearances. Reminders due sooner wait their turn.")
+            }
+
+            Section {
                 LabeledContent("Character") {
                     Button("Show a preview") { model.preview() }
                 }
@@ -89,6 +101,12 @@ private struct GeneralSettingsView: View {
             }
         }
         .formStyle(.grouped)
+    }
+
+    private func cooldownLabel(_ seconds: Int) -> String {
+        if seconds < 60 { return "\(seconds) seconds" }
+        let minutes = seconds / 60
+        return minutes == 1 ? "1 minute" : "\(minutes) minutes"
     }
 }
 

@@ -23,7 +23,11 @@ final class AppModel {
     }
 
     func start() {
-        let scheduler = ReminderScheduler(reminders: reminders, gate: SystemSuppressionGate(idleThreshold: Self.idleThreshold)) { [weak self] reminder in
+        let scheduler = ReminderScheduler(
+            reminders: reminders,
+            gate: SystemSuppressionGate(idleThreshold: Self.idleThreshold),
+            cooldown: Self.cooldown
+        ) { [weak self] reminder in
             self?.deliver(reminder)
         }
         scheduler.start()
@@ -97,6 +101,16 @@ final class AppModel {
     private static func idleThreshold() -> TimeInterval {
         let stored = UserDefaults.standard.integer(forKey: idleMinutesKey)
         return TimeInterval((stored > 0 ? stored : defaultIdleMinutes) * 60)
+    }
+
+    /// UserDefaults key for the minimum gap between two appearances, in
+    /// seconds, so back-to-back reminders never stack.
+    static let cooldownSecondsKey = "cooldownSeconds"
+    static let defaultCooldownSeconds = 120
+
+    private static func cooldown() -> TimeInterval {
+        let stored = UserDefaults.standard.integer(forKey: cooldownSecondsKey)
+        return TimeInterval(stored > 0 ? stored : defaultCooldownSeconds)
     }
 
     /// Show the first enabled reminder now, without waiting out an interval.
