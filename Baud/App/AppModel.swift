@@ -101,6 +101,14 @@ final class AppModel {
         return TimeInterval(stored > 0 ? stored : Self.defaultAutoDismissSeconds)
     }
 
+    /// UserDefaults key for the arrival sound. Off by default: silence is the
+    /// product's default posture, and sound is opt-in.
+    static let soundEnabledKey = "soundEnabled"
+
+    private var playsArrivalSound: Bool {
+        UserDefaults.standard.bool(forKey: Self.soundEnabledKey)
+    }
+
     /// UserDefaults key for how long the Mac sits with no input before
     /// reminders are held, in minutes.
     static let idleMinutesKey = "idleMinutes"
@@ -216,11 +224,13 @@ final class AppModel {
         let reminder = reminders.first(where: \.isEnabled)
             ?? Reminder(label: "Preview", message: "This is how a reminder looks.", interval: 60, mood: .custom)
         presenter.autoDismissDelay = autoDismissDelay
+        presenter.playsArrivalSound = playsArrivalSound
         presenter.show(reminder: reminder) { _ in }
     }
 
     private func deliver(_ reminder: Reminder) {
         presenter.autoDismissDelay = autoDismissDelay
+        presenter.playsArrivalSound = playsArrivalSound
         presenter.show(reminder: reminder) { [weak self] outcome in
             self?.handle(outcome, for: reminder)
         }

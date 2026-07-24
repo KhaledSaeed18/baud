@@ -24,6 +24,7 @@ struct SettingsView: View {
 private struct GeneralSettingsView: View {
     let model: AppModel
     @State private var launchAtLogin: Bool
+    @AppStorage(AppModel.soundEnabledKey) private var soundEnabled = false
 
     init(model: AppModel) {
         self.model = model
@@ -42,11 +43,14 @@ private struct GeneralSettingsView: View {
             }
 
             Section {
+                Toggle("Play a sound on arrival", isOn: $soundEnabled)
                 LabeledContent("Character") {
                     Button("Show a preview") { model.preview() }
                 }
             } footer: {
-                Text("The character slides in from the corner, delivers one line, and leaves.")
+                Text(soundEnabled
+                    ? "One quiet cue when the character arrives. The character slides in, delivers one line, and leaves."
+                    : "Baud is silent by default. The character slides in, delivers one line, and leaves.")
             }
         }
         .formStyle(.grouped)

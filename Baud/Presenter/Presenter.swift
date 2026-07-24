@@ -20,6 +20,9 @@ final class Presenter {
     // Settable by the app model from the user's preference; the presenter only
     // performs the wait, it does not own the choice.
     var autoDismissDelay: TimeInterval = 8
+
+    // Opt-in, one quiet cue on arrival, never a jingle. Off by default.
+    var playsArrivalSound = false
     private var currentOutcome: ((ReminderOutcome) -> Void)?
     private var mouseMonitor: Any?
 
@@ -71,6 +74,7 @@ final class Presenter {
         }
 
         startTrackingMouse()
+        playArrivalCueIfWanted()
         character.speak()
         try? await Task.sleep(for: .seconds(speakingBeat))
         guard character.state == .speaking else { return }
@@ -110,6 +114,12 @@ final class Presenter {
         window.orderOut(nil)
         stopTrackingMouse()
         character.finishLeaving()
+    }
+
+    private func playArrivalCueIfWanted() {
+        guard playsArrivalSound, let sound = NSSound(named: "Pop") else { return }
+        sound.volume = 0.3
+        sound.play()
     }
 
     private func report(_ outcome: ReminderOutcome) {
