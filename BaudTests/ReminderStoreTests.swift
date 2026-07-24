@@ -27,6 +27,15 @@ struct ReminderStoreTests {
         let store = ReminderStore(directory: tempDirectory())
         var reminders = DefaultReminders.all
         reminders.append(Reminder(label: "Tea", message: "Tea.", interval: 900, mood: .custom, snoozeInterval: 300))
+        // Whole seconds only: ISO 8601 drops sub-second precision by design.
+        reminders.append(Reminder(
+            label: "Call",
+            message: "Call Tom.",
+            interval: 60,
+            mood: .custom,
+            weekdays: [2, 6],
+            fireAt: Date(timeIntervalSince1970: 1_900_000_000)
+        ))
         try store.save(reminders)
         #expect(store.load() == reminders)
     }
