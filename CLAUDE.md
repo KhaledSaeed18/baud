@@ -41,10 +41,12 @@ Baud/                                app target: SwiftUI, menu bar only (LSUIEle
     BaudApp.swift                    @main; MenuBarExtra + Settings scenes
     AppDelegate.swift                owns AppModel; starts scheduling, recomputes on wake
     AppModel.swift                   @Observable controller the UI reads and sends intent to
+    QuickAddHotKey.swift             the system-wide command shift B hotkey (Carbon)
   Reminders/                         what exists; data only, no AppKit, no timing
     Reminder.swift                   the model: label, message, interval, mood, enabled, built-in
     DefaultReminders.swift           the built-ins (move, water, eyes, posture), fixed ids
     Preset.swift                     one-click starting points that retune the built-ins
+    QuickAddParser.swift             one plain sentence to a reminder; deterministic, no model
     ReminderStore.swift              JSON load and save in Application Support
   Scheduler/                         when it fires; no AppKit, no SwiftUI, tested headless
     ReminderScheduler.swift          fire dates, held queue, pause, one coordinating wait, wake recovery
@@ -65,9 +67,11 @@ Baud/                                app target: SwiftUI, menu bar only (LSUIEle
     CharacterView.swift              the code-drawn character in SwiftUI
     Motion.swift                     every animation constant in one place
   UI/
-    MenuBarView.swift                next reminder, pause, show now, settings, quit
-    SettingsView.swift               tabbed settings (General, Reminders, About)
+    MenuBarView.swift                next reminder, held status, pause, quick add, settings, quit
+    SettingsView.swift               tabbed settings (General, Timing, Reminders, About)
     ReminderEditorView.swift         list, add, edit, enable, delete; the reminder detail sheet
+    QuickAddPanel.swift              floating one-line field; the only window that may become key
+    TimeOfDay.swift                  minutes-of-day to DatePicker bridging and labels
   Resources/Assets.xcassets          AppIcon and the MenuBarIcon template mark
   Supporting/Info.plist              LSUIElement = true
 
@@ -141,6 +145,12 @@ the mouse, inset from `visibleFrame` so it clears the Dock and the menu bar.
   `DailyWindow`, pure and tested; the scheduler takes it as a `(Date) -> Bool` provider.
 - A reminder may carry its own active hours, a `DailyWindow` like lunch for a snack reminder. Due
   outside the window, it is deferred to the next window start, not skipped and not held.
+- A reminder may carry a weekday set. Due on a day outside it, the reminder defers to the start of
+  the next allowed day, where its active hours take over if it has any.
+- Quick add turns one plain sentence into a reminder through `QuickAddParser`: deterministic rules
+  for "every", "in", and "at" schedules plus weekday suffixes, no model and no network. The panel in
+  `QuickAddPanel` is the one window allowed to become key; it is nonactivating, so summoning it does
+  not steal the front app.
 - A one-time reminder (`fireAt` set) fires once and is spent: delivered, held, or silenced, it does
   not reschedule. A snooze or a new date brings it back once; after it is seen, the app model
   disables it. On launch, one missed by less than an hour still fires; older ones stay quiet.
@@ -289,6 +299,7 @@ the built-ins. It is a supported public interface: the schema is stable.
 | `snoozeInterval` | number | Optional. Seconds a snooze postpones this reminder; omitted means the app-wide snooze length applies. |
 | `activeHours` | object | Optional. `{"startMinutes": 720, "endMinutes": 840}`, minutes after midnight; the window may wrap midnight. Due outside it, the reminder waits for the next window start. Omitted means the whole day. |
 | `fireAt` | string | Optional. ISO 8601 date. Set, the reminder fires once at that moment and then disables itself, and `interval` is ignored. Omitted means it repeats. |
+| `weekdays` | array | Optional. Calendar weekday numbers, 1 is Sunday. Due on another day, the reminder waits for the next allowed day. Omitted or empty means every day. |
 
 Edit with the app quit: saving from the editor while Baud runs overwrites hand edits. An unreadable
 or malformed file falls back to the built-ins in memory only, never overwriting the file, rather than
@@ -313,6 +324,7 @@ closures), so every change applies without a restart.
 | `captureHoldEnabled`    | true    | Whether an active camera or microphone holds reminders.  |
 | `cooldownSeconds`       | 120     | Minimum gap between two appearances.                     |
 | `calendarHoldEnabled`   | false   | Whether a calendar event in progress holds reminders. Needs calendar access. |
+| `quickAddHotKeyEnabled` | true    | Whether command shift B summons quick add system-wide.   |
 | `quietHoursEnabled`     | false   | Whether the daily quiet window applies.                  |
 | `quietStartMinutes`     | 1260    | Quiet window start, minutes after midnight (21:00).      |
 | `quietEndMinutes`       | 480     | Quiet window end, minutes after midnight (08:00).        |
