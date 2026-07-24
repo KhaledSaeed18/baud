@@ -57,6 +57,8 @@ On top of the built-ins:
   menu bar without quitting.
 - **Quiet hours**: a daily window, evenings and nights if you like, in which reminders are skipped
   entirely. The morning starts clean, with no backlog waiting.
+- **Active hours per reminder**: a snack reminder that lives only around lunch, water only during
+  the workday. Due outside its hours, a reminder waits for its window to open.
 - **Snooze without nagging**: click the character to dismiss, or snooze it. The snooze length is
   yours to set, app-wide or per reminder. Ignore it and it dismisses itself.
 - **Timing that fits you**: the snooze length, how long the character waits before leaving, the
@@ -119,7 +121,7 @@ Settings has four tabs:
   away holds reminders (and whether it does), whether full screen and calls hold them, the
   smallest gap between two appearances, and a daily quiet-hours window.
 - **Reminders**: enable, disable, add, edit, and delete reminders. Each reminder can carry its own
-  snooze length or use the app-wide one.
+  snooze length and its own active hours, or use the app-wide defaults.
 - **About**: version and a link to the source.
 
 Reminders are stored as a JSON array at `~/Library/Application Support/Baud/reminders.json`, seeded
@@ -136,6 +138,7 @@ hand edits). The format is a supported interface:
 | `isEnabled` | boolean | Whether the reminder is scheduled.                       |
 | `isBuiltIn` | boolean | True for the shipped reminders; those cannot be deleted. |
 | `snoozeInterval` | number | Optional. Seconds a snooze postpones this reminder; omitted means the app-wide snooze length applies. |
+| `activeHours` | object | Optional. `{"startMinutes": 720, "endMinutes": 840}`, minutes after midnight. Due outside the window, the reminder waits for the next window start. Omitted means the whole day. |
 
 An unreadable or malformed file falls back to the built-ins rather than leaving you with nothing,
 and the file itself is left untouched for you to fix.

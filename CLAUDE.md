@@ -137,7 +137,9 @@ the mouse, inset from `visibleFrame` so it clears the Dock and the menu bar.
   Holding is the app's intent (a bad moment); pausing is the user's intent (silence). They differ.
 - Quiet hours are a scheduled pause: a daily window (off by default, may wrap midnight) in which due
   reminders are skipped, not held, so a morning never starts with a backlog. The window math lives in
-  `QuietHours`, pure and tested; the scheduler takes it as a `(Date) -> Bool` provider.
+  `DailyWindow`, pure and tested; the scheduler takes it as a `(Date) -> Bool` provider.
+- A reminder may carry its own active hours, a `DailyWindow` like lunch for a snack reminder. Due
+  outside the window, it is deferred to the next window start, not skipped and not held.
 
 ### Reminder model
 
@@ -274,6 +276,7 @@ the built-ins. It is a supported public interface: the schema is stable.
 | `isEnabled` | boolean | Whether the reminder is scheduled.                        |
 | `isBuiltIn` | boolean | True for the shipped reminders; those cannot be deleted.  |
 | `snoozeInterval` | number | Optional. Seconds a snooze postpones this reminder; omitted means the app-wide snooze length applies. |
+| `activeHours` | object | Optional. `{"startMinutes": 720, "endMinutes": 840}`, minutes after midnight; the window may wrap midnight. Due outside it, the reminder waits for the next window start. Omitted means the whole day. |
 
 Edit with the app quit: saving from the editor while Baud runs overwrites hand edits. An unreadable
 or malformed file falls back to the built-ins in memory only, never overwriting the file, rather than
