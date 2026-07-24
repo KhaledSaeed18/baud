@@ -299,6 +299,7 @@ closures), so every change applies without a restart.
 
 | Key                     | Default | Meaning                                                 |
 |-------------------------|---------|---------------------------------------------------------|
+| `soundEnabled`          | false   | One quiet cue when the character arrives. Opt-in.        |
 | `snoozeMinutes`         | 10      | App-wide snooze length; a reminder's `snoozeInterval` overrides it. |
 | `autoDismissSeconds`    | 8       | How long the character waits for a click before leaving. |
 | `idleMinutes`           | 2       | Input-free minutes before reminders are held.            |

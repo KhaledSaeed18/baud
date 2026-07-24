@@ -122,7 +122,8 @@ label, message, mood, and interval.
 
 Settings has four tabs:
 
-- **General**: launch at login and a character preview.
+- **General**: launch at login, an opt-in arrival sound (silent by default), and a character
+  preview.
 - **Timing**: the snooze length, how long the character waits before leaving on its own, when being
   away holds reminders (and whether it does), whether full screen, calls, and calendar events hold
   them, the smallest gap between two appearances, and a daily quiet-hours window.
