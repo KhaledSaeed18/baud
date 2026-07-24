@@ -135,6 +135,9 @@ the mouse, inset from `visibleFrame` so it clears the Dock and the menu bar.
   missed occurrences collapse to at most one. `AppDelegate` observes `NSWorkspace.didWakeNotification`.
 - Pause silences the app: due reminders are skipped, not held, so resuming does not pop a backlog.
   Holding is the app's intent (a bad moment); pausing is the user's intent (silence). They differ.
+- Quiet hours are a scheduled pause: a daily window (off by default, may wrap midnight) in which due
+  reminders are skipped, not held, so a morning never starts with a backlog. The window math lives in
+  `QuietHours`, pure and tested; the scheduler takes it as a `(Date) -> Bool` provider.
 
 ### Reminder model
 
@@ -292,6 +295,9 @@ closures), so every change applies without a restart.
 | `fullScreenHoldEnabled` | true    | Whether a full-screen frontmost app holds reminders.     |
 | `captureHoldEnabled`    | true    | Whether an active camera or microphone holds reminders.  |
 | `cooldownSeconds`       | 120     | Minimum gap between two appearances.                     |
+| `quietHoursEnabled`     | false   | Whether the daily quiet window applies.                  |
+| `quietStartMinutes`     | 1260    | Quiet window start, minutes after midnight (21:00).      |
+| `quietEndMinutes`       | 480     | Quiet window end, minutes after midnight (08:00).        |
 
 A missing hold toggle reads as enabled; holding is always the default. Turning the idle hold off maps
 to an infinite idle threshold, so the gate carries no extra state.

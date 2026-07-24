@@ -55,6 +55,8 @@ On top of the built-ins:
   flush after a meeting.
 - **Pause**: silence Baud for thirty minutes, an hour, three hours, or until you resume, from the
   menu bar without quitting.
+- **Quiet hours**: a daily window, evenings and nights if you like, in which reminders are skipped
+  entirely. The morning starts clean, with no backlog waiting.
 - **Snooze without nagging**: click the character to dismiss, or snooze it. The snooze length is
   yours to set, app-wide or per reminder. Ignore it and it dismisses itself.
 - **Timing that fits you**: the snooze length, how long the character waits before leaving, the
@@ -114,8 +116,8 @@ Settings has four tabs:
 
 - **General**: launch at login and a character preview.
 - **Timing**: the snooze length, how long the character waits before leaving on its own, when being
-  away holds reminders (and whether it does), whether full screen and calls hold them, and the
-  smallest gap between two appearances.
+  away holds reminders (and whether it does), whether full screen and calls hold them, the
+  smallest gap between two appearances, and a daily quiet-hours window.
 - **Reminders**: enable, disable, add, edit, and delete reminders. Each reminder can carry its own
   snooze length or use the app-wide one.
 - **About**: version and a link to the source.
