@@ -81,6 +81,9 @@ private struct ReminderRow: View {
     // Show the interval in the same unit the editor would, so a 2 hr reminder does
     // not read as "Every 120 min" and a short one does not round to "Every 0 min".
     private var intervalText: String {
+        if let fireAt = reminder.fireAt {
+            return "Once at \(fireAt.formatted(date: .abbreviated, time: .shortened))"
+        }
         let split = IntervalUnit.split(reminder.interval)
         var base = "Every \(split.value) \(split.unit.short)"
         if let window = reminder.activeHours {
@@ -102,6 +105,8 @@ private struct ReminderDetailView: View {
     @State private var hasActiveHours: Bool
     @State private var activeStartMinutes: Int
     @State private var activeEndMinutes: Int
+    @State private var isOneTime: Bool
+    @State private var fireAt: Date
     private let onSave: (Reminder) -> Void
     private let onDelete: (() -> Void)?
     @AppStorage(AppModel.cooldownSecondsKey) private var cooldownSeconds = AppModel.defaultCooldownSeconds
@@ -127,6 +132,8 @@ private struct ReminderDetailView: View {
         _hasActiveHours = State(initialValue: reminder.activeHours != nil)
         _activeStartMinutes = State(initialValue: reminder.activeHours?.startMinutes ?? 9 * 60)
         _activeEndMinutes = State(initialValue: reminder.activeHours?.endMinutes ?? 17 * 60)
+        _isOneTime = State(initialValue: reminder.isOneTime)
+        _fireAt = State(initialValue: reminder.fireAt ?? Date().addingTimeInterval(3600))
         self.onSave = onSave
         self.onDelete = onDelete
     }
@@ -150,44 +157,60 @@ private struct ReminderDetailView: View {
                     }
                 }
 
-                Section("Interval") {
-                    presets
-                    LabeledContent("Every") {
-                        HStack(spacing: 8) {
-                            TextField("", value: $value, format: .number)
-                                .labelsHidden()
-                                .textFieldStyle(.roundedBorder)
-                                .frame(width: 56)
-                                .multilineTextAlignment(.trailing)
-                            Stepper("Interval", value: $value, in: unit.range, step: unit.step)
-                                .labelsHidden()
-                            Picker("Unit", selection: $unit) {
-                                ForEach(IntervalUnit.allCases) { option in
-                                    Text(option.short).tag(option)
-                                }
-                            }
-                            .labelsHidden()
-                            .pickerStyle(.menu)
-                            .fixedSize()
-                        }
+                Section("Schedule") {
+                    Picker("Fires", selection: $isOneTime) {
+                        Text("Repeating").tag(false)
+                        Text("Once").tag(true)
                     }
-                    if intervalSeconds < TimeInterval(cooldownSeconds) {
-                        Text("Shorter than the \(IntervalUnit.shortLabel(seconds: cooldownSeconds)) gap between reminders. It appears about that often instead, and nothing is dropped.")
+                    .pickerStyle(.segmented)
+                    if isOneTime {
+                        DatePicker("At", selection: $fireAt, in: Date()...)
+                        Text("It appears once at this time, then turns itself off.")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
                 }
 
-                Section("Active hours") {
-                    Toggle("Only during part of the day", isOn: $hasActiveHours)
-                    DatePicker("From", selection: TimeOfDay.binding($activeStartMinutes), displayedComponents: .hourAndMinute)
-                        .disabled(!hasActiveHours)
-                    DatePicker("Until", selection: TimeOfDay.binding($activeEndMinutes), displayedComponents: .hourAndMinute)
-                        .disabled(!hasActiveHours)
-                    if hasActiveHours {
-                        Text("Due outside these hours, it waits for the window to open.")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                if !isOneTime {
+                    Section("Interval") {
+                        presets
+                        LabeledContent("Every") {
+                            HStack(spacing: 8) {
+                                TextField("", value: $value, format: .number)
+                                    .labelsHidden()
+                                    .textFieldStyle(.roundedBorder)
+                                    .frame(width: 56)
+                                    .multilineTextAlignment(.trailing)
+                                Stepper("Interval", value: $value, in: unit.range, step: unit.step)
+                                    .labelsHidden()
+                                Picker("Unit", selection: $unit) {
+                                    ForEach(IntervalUnit.allCases) { option in
+                                        Text(option.short).tag(option)
+                                    }
+                                }
+                                .labelsHidden()
+                                .pickerStyle(.menu)
+                                .fixedSize()
+                            }
+                        }
+                        if intervalSeconds < TimeInterval(cooldownSeconds) {
+                            Text("Shorter than the \(IntervalUnit.shortLabel(seconds: cooldownSeconds)) gap between reminders. It appears about that often instead, and nothing is dropped.")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+
+                    Section("Active hours") {
+                        Toggle("Only during part of the day", isOn: $hasActiveHours)
+                        DatePicker("From", selection: TimeOfDay.binding($activeStartMinutes), displayedComponents: .hourAndMinute)
+                            .disabled(!hasActiveHours)
+                        DatePicker("Until", selection: TimeOfDay.binding($activeEndMinutes), displayedComponents: .hourAndMinute)
+                            .disabled(!hasActiveHours)
+                        if hasActiveHours {
+                            Text("Due outside these hours, it waits for the window to open.")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
                     }
                 }
 
@@ -221,9 +244,11 @@ private struct ReminderDetailView: View {
                 Button("Save") {
                     draft.interval = intervalSeconds
                     draft.snoozeInterval = snoozeMinutes.map { TimeInterval($0 * 60) }
+                    draft.fireAt = isOneTime ? fireAt : nil
                     // Equal ends would be an empty window, a reminder that can
-                    // never appear; treat it as no restriction instead.
-                    draft.activeHours = hasActiveHours && activeStartMinutes != activeEndMinutes
+                    // never appear; treat it as no restriction instead. A
+                    // one-time reminder has a moment, not hours.
+                    draft.activeHours = !isOneTime && hasActiveHours && activeStartMinutes != activeEndMinutes
                         ? DailyWindow(startMinutes: activeStartMinutes, endMinutes: activeEndMinutes)
                         : nil
                     onSave(draft)

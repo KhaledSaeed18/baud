@@ -241,7 +241,11 @@ final class AppModel {
         case .snoozed:
             scheduler?.snooze(reminder.id, by: reminder.snoozeInterval ?? snoozeInterval)
         case .dismissed, .autoDismissed:
-            break
+            // A one-time reminder is done once seen. It stays in the list,
+            // disabled, so it can be reused with a new date or deleted.
+            if reminder.isOneTime {
+                setEnabled(false, for: reminder)
+            }
         }
     }
 
