@@ -26,6 +26,9 @@ final class ReminderScheduler {
     // A provider, like the gate's idle threshold, so a settings change applies
     // on the next delivery check without restarting the scheduler.
     @ObservationIgnored private let cooldown: () -> TimeInterval
+    // Quiet hours behave like a scheduled pause: due reminders are skipped, not
+    // held, so a morning never starts with a backlog.
+    @ObservationIgnored private let quiet: (Date) -> Bool
     @ObservationIgnored private let recheckInterval: TimeInterval
     @ObservationIgnored private var lastDelivery: Date?
     @ObservationIgnored private var wait: Task<Void, Never>?
@@ -34,6 +37,7 @@ final class ReminderScheduler {
         reminders: [Reminder],
         gate: SuppressionGate? = nil,
         cooldown: @escaping () -> TimeInterval = { 120 },
+        quiet: @escaping (Date) -> Bool = { _ in false },
         recheckInterval: TimeInterval = 30,
         now: @escaping () -> Date = Date.init,
         deliver: @escaping (Reminder) -> Void
@@ -41,6 +45,7 @@ final class ReminderScheduler {
         self.reminders = reminders
         self.gate = gate ?? ClearGate()
         self.cooldown = cooldown
+        self.quiet = quiet
         self.recheckInterval = recheckInterval
         self.now = now
         self.deliver = deliver
@@ -138,11 +143,11 @@ final class ReminderScheduler {
     @discardableResult
     func fireDue(at current: Date) -> [Reminder] {
         var delivered: [Reminder] = []
-        let paused = isPaused(at: current)
+        let silenced = isPaused(at: current) || quiet(current)
         for reminder in reminders where reminder.isEnabled {
             guard let due = nextFire[reminder.id], due <= current else { continue }
             nextFire[reminder.id] = Self.nextOccurrence(after: current, anchor: due, interval: reminder.interval)
-            guard !paused else { continue }
+            guard !silenced else { continue }
             if deliverOrHold(reminder, due: due, at: current) {
                 delivered.append(reminder)
             }
@@ -183,7 +188,7 @@ final class ReminderScheduler {
     }
 
     private func canDeliver(at current: Date) -> Bool {
-        !isPaused(at: current) && gate.currentReason() == nil && cooldownElapsed(at: current)
+        !isPaused(at: current) && !quiet(current) && gate.currentReason() == nil && cooldownElapsed(at: current)
     }
 
     private func cooldownElapsed(at current: Date) -> Bool {
