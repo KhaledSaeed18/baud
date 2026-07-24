@@ -11,21 +11,26 @@ struct SystemSuppressionGate: SuppressionGate {
     // without rebuilding the gate or restarting the scheduler.
     private let idleThreshold: () -> TimeInterval
     private let holdsOverFullScreen: () -> Bool
+    private let holdsDuringCapture: () -> Bool
 
     private let idle = IdleMonitor()
     private let capture = CaptureMonitor()
 
     init(
         idleThreshold: @escaping () -> TimeInterval = { 120 },
-        holdsOverFullScreen: @escaping () -> Bool = { true }
+        holdsOverFullScreen: @escaping () -> Bool = { true },
+        holdsDuringCapture: @escaping () -> Bool = { true }
     ) {
         self.idleThreshold = idleThreshold
         self.holdsOverFullScreen = holdsOverFullScreen
+        self.holdsDuringCapture = holdsDuringCapture
     }
 
     func currentReason() -> SuppressionReason? {
         if isScreenLocked() { return .screenLocked }
-        if capture.isMicrophoneActive() || capture.isCameraActive() { return .cameraOrMicrophoneInUse }
+        if holdsDuringCapture(), capture.isMicrophoneActive() || capture.isCameraActive() {
+            return .cameraOrMicrophoneInUse
+        }
         if holdsOverFullScreen(), isFrontmostFullScreen() { return .fullScreen }
         if idle.secondsSinceInput() >= idleThreshold() { return .idle }
         return nil

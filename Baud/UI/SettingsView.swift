@@ -62,6 +62,7 @@ private struct TimingSettingsView: View {
     @AppStorage(AppModel.idleMinutesKey) private var idleMinutes = AppModel.defaultIdleMinutes
     @AppStorage(AppModel.idleHoldEnabledKey) private var idleHoldEnabled = true
     @AppStorage(AppModel.fullScreenHoldEnabledKey) private var fullScreenHoldEnabled = true
+    @AppStorage(AppModel.captureHoldEnabledKey) private var captureHoldEnabled = true
     @AppStorage(AppModel.cooldownSecondsKey) private var cooldownSeconds = AppModel.defaultCooldownSeconds
 
     private static let snoozeChoices = [5, 10, 15, 30]
@@ -111,6 +112,14 @@ private struct TimingSettingsView: View {
                 Text(fullScreenHoldEnabled
                     ? "A full-screen app, video, or presentation holds reminders until you leave it."
                     : "Reminders appear over full-screen apps. Calls and the locked screen still hold them.")
+            }
+
+            Section {
+                Toggle("Hold during calls", isOn: $captureHoldEnabled)
+            } footer: {
+                Text(captureHoldEnabled
+                    ? "An active camera or microphone holds reminders; a call is likely in progress."
+                    : "Reminders appear even while the camera or microphone is in use. They can interrupt a call or a recording.")
             }
 
             Section {

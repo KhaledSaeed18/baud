@@ -27,7 +27,8 @@ final class AppModel {
             reminders: reminders,
             gate: SystemSuppressionGate(
                 idleThreshold: Self.idleThreshold,
-                holdsOverFullScreen: Self.holdsOverFullScreen
+                holdsOverFullScreen: Self.holdsOverFullScreen,
+                holdsDuringCapture: Self.holdsDuringCapture
             ),
             cooldown: Self.cooldown
         ) { [weak self] reminder in
@@ -109,20 +110,31 @@ final class AppModel {
     /// reminders. On by default; a missing value reads as enabled.
     static let fullScreenHoldEnabledKey = "fullScreenHoldEnabled"
 
-    private static func holdsOverFullScreen() -> Bool {
+    /// UserDefaults key for whether an active camera or microphone holds
+    /// reminders. On by default; a missing value reads as enabled.
+    static let captureHoldEnabledKey = "captureHoldEnabled"
+
+    /// Reads a hold toggle that defaults to on: a missing value is enabled,
+    /// unlike UserDefaults' plain bool(forKey:).
+    private static func holdEnabled(_ key: String) -> Bool {
         let defaults = UserDefaults.standard
-        guard defaults.object(forKey: fullScreenHoldEnabledKey) != nil else { return true }
-        return defaults.bool(forKey: fullScreenHoldEnabledKey)
+        guard defaults.object(forKey: key) != nil else { return true }
+        return defaults.bool(forKey: key)
+    }
+
+    private static func holdsOverFullScreen() -> Bool {
+        holdEnabled(fullScreenHoldEnabledKey)
+    }
+
+    private static func holdsDuringCapture() -> Bool {
+        holdEnabled(captureHoldEnabledKey)
     }
 
     private static func idleThreshold() -> TimeInterval {
-        let defaults = UserDefaults.standard
         // An infinite threshold turns the idle check off without the gate
         // needing to know the setting exists.
-        if defaults.object(forKey: idleHoldEnabledKey) != nil, !defaults.bool(forKey: idleHoldEnabledKey) {
-            return .infinity
-        }
-        let stored = defaults.integer(forKey: idleMinutesKey)
+        guard holdEnabled(idleHoldEnabledKey) else { return .infinity }
+        let stored = UserDefaults.standard.integer(forKey: idleMinutesKey)
         return TimeInterval((stored > 0 ? stored : defaultIdleMinutes) * 60)
     }
 
