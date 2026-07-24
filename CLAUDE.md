@@ -101,7 +101,8 @@ DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer \
 
 In Xcode, run the tests with Cmd U. The scheduler, store, and suppression gate hold the coverage;
 they run with no window on screen, which is the point of the seam. Verify with a clean `xcodebuild
-... test` before pushing.
+... test` before pushing. CI (`.github/workflows/ci.yml`) runs the same build and test on every
+push to main and every pull request, unsigned, on a macOS runner.
 
 ## Architecture rules (hard)
 

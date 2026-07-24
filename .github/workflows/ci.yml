@@ -1,0 +1,25 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# A superseded push stops the older run; only the newest commit matters.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Build and test
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Show Xcode version
+        run: xcodebuild -version
+      - name: Test Baud
+        run: >
+          xcodebuild -project Baud.xcodeproj -scheme Baud
+          -configuration Debug CODE_SIGNING_ALLOWED=NO
+          -destination 'platform=macOS' test
